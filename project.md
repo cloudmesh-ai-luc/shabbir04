@@ -4,7 +4,7 @@
 | ---------------- | ---------------------------------------------------------------------- |
 | **Course:**      | COMP 488 – Cloud Computing, DevOps, and AI                             |
 | **Team Members** | - *Khaja Shabbir Ahmed* – Cloud / DevOps Engineer (solo project)       |
-| **Contact**      | <khajashabbirahmed@gmail.com>                                          |
+| **Contact**      | <kahmed5@luc.edu>                                          |
 | **Instructor**   | Gregor von Laszewski                                                   |
 | **Repository**   | https://github.com/cloudmesh-ai-luc/shabbir04                          |
 | **Date**         | *Sept. 23 2026* (draft v0.2)                                           |
