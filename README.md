@@ -6,6 +6,53 @@ Note:
 *  put files in `<repor>/assignments/week3/`
 *  Update all YOURREPO
 
+## Week 5
+
+* [ ] Assignment W5.1: VMs via python (libcloud) (Due Oct 1, 2026, 9am)
+  * [ ] Fork and clone <https://github.com/cloudmesh-ai/cloudmesh-ai-vm>, work on feature branches, submit PRs.
+  * [ ] Cloud implementation: implement or improve commands for one or more providers (Local, OpenStack, or Hyperscalers).
+  * [ ] Code understanding: Click CLI ↔ `clouds.yaml` ↔ provider interfaces.
+  * [ ] Feature completeness: implement all mentioned commands across the selected clouds.
+  * [ ] Validation: shell script (`verify_vm.sh`) showing success/failure of each command.
+  * [ ] Collaboration: GitHub issues, PRs, peer review, Piazza.
+  * [ ] Documentation: cloud-specific examples in the markdown docs.
+  * [ ] Self-assessment: tasks completed, not completed, not understood, already done.
+
+## Week 4
+
+* [x] Assignment W4.1: VM on local machine via Makefile (Due Sep 24, 2026, 9am)
+  * [x] Pick a local VM framework and install it (Multipass).
+  * [x] Write a Makefile with all the targets needed to manage a single VM.
+  * [x] Can you manage multiple machines? How.
+  * [x] How do you organize Makefiles for different local and cloud environments (directories).
+  * [x] [local/](https://github.com/cloudmesh-ai-luc/shabbir04/tree/main/assignments/week4/local)
+
+* [x] Assignment W4.2: VM on Jetstream 2 (Due Sep 24, 2026, 9am)
+  * [x] Install the openstack commandline client.
+  * [x] Write a Makefile with all the targets needed to manage a single VM.
+  * [x] Can you manage multiple machines?
+  * [x] Check it into your repository. [jetstream/](https://github.com/cloudmesh-ai-luc/shabbir04/tree/main/assignments/week4/jetstream)
+
+* [x] Assignment W4.3: VM on Chameleon Cloud (Due Sep 24, 2026, 9am)
+  * [x] Install the openstack commandline client.
+  * [x] Install python-chi.
+  * [x] Write a Makefile with all the targets needed to manage a single VM.
+  * [x] Can you manage multiple machines?
+  * [x] Check it into your repository. [chameleon/](https://github.com/cloudmesh-ai-luc/shabbir04/tree/main/assignments/week4/chameleon)
+  * [x] Other: tested on KVM@TACC (create, ssh, stop/start, clean). Lease creation via the API returns HTTP 500, so the lease was made in the dashboard (documented in the README).
+
+* [x] Assignment W4.4: Review Python (Due Sep 24, 2026, 9am)
+  * [x] Set up a python virtual environment (venv, not conda).
+  * [x] Using pip install and pipx install.
+  * [x] Import statements; program using `os.system("ls")`.
+  * [x] Create a `__main__`.
+  * [x] Write a function.
+  * [x] Pass arguments from the commandline (click).
+  * [x] Run shell commands from python (`os.system()`, `subprocess.run()`).
+  * [x] [python/](https://github.com/cloudmesh-ai-luc/shabbir04/tree/main/assignments/week4/python)
+
+* [x] Every week: update the `README.md` with the list of assignments posted each week.
+
 ## Week 3
 
 * [x] Assignment W3.1: VM on Jetstream (Due Sep 17, 2026, 9am)
