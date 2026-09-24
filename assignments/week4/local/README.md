@@ -10,5 +10,5 @@
 * Batch Targets: Loop over node lists (NODES ?= node1 node2) via cluster-create and cluster-clean.
 
 ## 3. Makefile Organization Across Environments
-* Directory Separation: Dedicated directories (local/, jetstream2/, chameleon/) keep credentials and configs isolated.
+* Directory Separation: Dedicated directories (local/, jetstream/, chameleon/) keep credentials and configs isolated.
 * Top-Level Orchestration: Root Makefile delegates commands using $(MAKE) -C <dir> <target>.
