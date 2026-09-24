@@ -7,7 +7,7 @@
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install click
 ```
 
 ## 2. pip vs pipx
@@ -39,7 +39,6 @@ All of these are in [`review.py`](review.py):
 ## Example run
 ```
 $ python review.py ls .
-requirements.txt
 review.py
 os.system exit code: 0
 
