@@ -1,6 +1,6 @@
 # shabbir04
 
-*  Accounts: [LINK to your Piazza account post]
+*  Accounts: [Piazza account post](https://piazza.com/class/mt5rkdsycb31c3/post/24)
 
 Note:
 *  put files in `<repor>/assignments/week3/`
@@ -141,7 +141,7 @@ Note:
   * [x] Create an account on access-ci.org.
   * [x] Create an account on chameleoncloud.org.
   * [x] Set up a GitHub account.
-  * [x] Post account information to Piazza under the accounts category. [LINK]
+  * [x] Post account information to Piazza under the accounts category. [Piazza post](https://piazza.com/class/mt5rkdsycb31c3/post/24)
 
 
 * [x] Assignment W1.5: Work ahead: Refresh knowledge about Python and Linux (Past Due)
