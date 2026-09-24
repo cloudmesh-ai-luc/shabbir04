@@ -103,7 +103,7 @@ Note:
 
 
 * [x] Assignment W2.3: Backup Your Computer (Due Sep 10, 2026, 9am)
-  * [v] Write a one‑paragraph explanation (4–6 sentences) on why backing up a computer is important. 
+  * [x] Write a one‑paragraph explanation (4–6 sentences) on why backing up a computer is important. 
   * [x] List three real‑world consequences of not having a backup.
   * [x] Choose one backup method and outline the setup steps.
   * [x] Create a weekly backup schedule (day, time, what to back up).
