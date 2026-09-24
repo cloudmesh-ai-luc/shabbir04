@@ -4,7 +4,6 @@
 
 Note:
 *  put files in `<repor>/assignments/week3/`
-*  Update all YOURREPO
 
 ## Week 5
 
@@ -59,7 +58,7 @@ Note:
   * [x] Start a VM on Jetstream and follow the tutorial provided.
   * [x] Improve the tutorial while creating pull requests in the lecture notes if you see issues.
   * [x] Document your activity with a screenshot of the terminal (800x600).
-  * [x] [VM.MD](https://github.com/cloudmesh-ai-luc/YOURREPO/blob/main/assignments/week3/vm.md)
+  * [x] [Comparing VM Creation.md](https://github.com/cloudmesh-ai-luc/shabbir04/blob/main/assignments/week3/Comparing%20VM%20Creation.md), [jetstream.png](https://github.com/cloudmesh-ai-luc/shabbir04/blob/main/assignments/week3/jetstream.png)
 
 
 * [x] Assignment W3.2: VM on Chameleon Cloud (Due Sep 17, 2026, 9am)
@@ -69,22 +68,22 @@ Note:
   * [x] Make a reservation not exceeding 1 hour.
   * [x] Start up a VM using a Chameleon Cloud image for Ubuntu 24.04 using the smallest image size possible.
   * [x] Document your activity with a screenshot of the terminal (800x600).
-  * [x] [VM.MD](https://github.com/cloudmesh-ai-luc/YOURREPO/blob/main/assignments/week3/vm.md)
+  * [x] [Comparing VM Creation.md](https://github.com/cloudmesh-ai-luc/shabbir04/blob/main/assignments/week3/Comparing%20VM%20Creation.md), [chameleon.png](https://github.com/cloudmesh-ai-luc/shabbir04/blob/main/assignments/week3/chameleon.png)
 
 
 * [ ] Assignment W3.3: OPTIONAL: VM on public cloud (Due Sep 17, 2026, 9am)
   * [ ] Optional: Create a VM on a cloud of your choice (AWS, Azure, Google) using the free tier.
   * [ ] Document with screenshots how you created your account, ensuring sensitive information is blurred out.
-  * [ ] [VM.MD](https://github.com/cloudmesh-ai-luc/YOURREPO/blob/main/assignments/week3/vm.md)
+  * [ ] Not done (optional)
 
 
 * [x] Assignment W3.4: Compare (Due Sep 17, 2026, 9am)
   * [x] Compare your experience between starting a VM on your local machine vs using Chameleon Cloud.
-  * [x] Put all assignment answers into `<repor>/assignments/week3.md`. [LINK]
-  * [x] [VM.MD](https://github.com/cloudmesh-ai-luc/YOURREPO/blob/main/assignments/week3/vm.md)
+  * [x] Put all assignment answers into `assignments/week3/`. [Comparing VM Creation.md](https://github.com/cloudmesh-ai-luc/shabbir04/blob/main/assignments/week3/Comparing%20VM%20Creation.md)
+  * [x] [Comparing VM Creation.md](https://github.com/cloudmesh-ai-luc/shabbir04/blob/main/assignments/week3/Comparing%20VM%20Creation.md)
      
 * [x] Assignment W3.5: README.md (Due Sep 17, 2026, 9am)
-  * [x] put your link here  [LINK]
+  * [x] [README.md](https://github.com/cloudmesh-ai-luc/shabbir04/blob/main/README.md)
      
  * [x] Assignment W3.6 git from commandline
    * [x] put the url of a pull request here
@@ -99,7 +98,7 @@ Note:
 
 * [x] Assignment W2.2: GitHub Repository (Due Sep 10, 2026, 9am)
   * [x] Verify that you can write into a file in your assigned GitHub repository.
-  * [x] Put something useful into the README such as your first and last name. [LINK]
+  * [x] Put something useful into the README such as your first and last name. [README.md](https://github.com/cloudmesh-ai-luc/shabbir04/blob/main/README.md)
   * [x] Upload your public key. [LINK]
 
 
@@ -109,19 +108,19 @@ Note:
   * [x] Choose one backup method and outline the setup steps.
   * [x] Create a weekly backup schedule (day, time, what to back up).
   * [x] Research an example from cloud computing where a missing backup strategy led to issues and write a short incident case.
-  * [x] Submit to `/assignments/week2/backup.md`. [LINK]
+  * [x] Submit to `/assignments/week2/`. [Backup.md](https://github.com/cloudmesh-ai-luc/shabbir04/blob/main/assignments/week2/Backup.md)
 
 
 * [x] Assignment W2.4: Local VM (Due Sep 10, 2026, 9am)
-  * [x] Windows: Install a terminal on Windows (Git Bash/WSL). [Which OS do you have?
-  * [x] Pick a hypervisor (VirtualBox, VMware, Hyper-V, Multipass). [Which?]
+  * [x] Windows: Install a terminal on Windows (Git Bash/WSL). macOS (not Windows)
+  * [x] Pick a hypervisor (VirtualBox, VMware, Hyper-V, Multipass). Multipass
   * [x] Create and start a minimal VM (e.g., Ubuntu 22.04).
   * [x] Capture proof of login with a terminal screenshot (≤ 800×600 px) showing your prompt and a command.
-  * [x] Write/update the tutorial in `assignments/week1/local-vm.md` and save the screenshot as `assignments/week1/vm-login.png`. [LINK/s]
+  * [x] Write/update the tutorial in `assignments/week1/local-vm.md` and save the screenshot as `assignments/week1/vm-login.png`. [local-vm.md](https://github.com/cloudmesh-ai-luc/shabbir04/blob/main/assignments/week1/local-vm.md), [local-vm.png](https://github.com/cloudmesh-ai-luc/shabbir04/blob/main/assignments/week1/local-vm.png)
 
 
 * [x] Assignment W2.5: Project proposal (Due Sep 10, 2026, 9am)
-  * [x] Start working towards a project proposal and fill out administrative fields and text. [LINK]
+  * [x] Start working towards a project proposal and fill out administrative fields and text. [project.md](https://github.com/cloudmesh-ai-luc/shabbir04/blob/main/project.md)
 
 
 # Week 1
