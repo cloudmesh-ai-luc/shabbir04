@@ -48,3 +48,16 @@ make clean
   make cluster-clean NODES="n1 n2 n3"
   ```
 * **python-chi:** `python3 chi_vm.py up --lease L --key K n1 n2 n3` reserves 3 instances and boots all of them.
+
+## 5. Test run (2026-09-24, KVM@TACC)
+| Step | Result |
+|---|---|
+| `make check` | Token issued with the application credential |
+| `make setup` | Keypair `khajashabbirahmed-key` uploaded, `allow-ssh` group (tcp/22) created |
+| `make lease` | **Failed**: Blazar API returns `500 Internal Server Error` for every lease request made with an application credential (also through python-chi and for floating-IP leases) |
+| Workaround | Lease `khajashabbirahmed-vm-lease` (1 × m1.small) created in the dashboard: *Reservations → Leases → Create Lease* |
+| `make create` | VM `khajashabbirahmed-vm` ACTIVE on flavor `reservation:<id>`, floating IP attached |
+| `make ssh` | Logged in as `cc` (Ubuntu 22.04, kernel 5.15) |
+| `make stop` / `make start` | SHUTOFF → ACTIVE, floating IP kept |
+
+A lease made in the dashboard works with every target because `create` only looks the lease up by name (`LEASE_NAME`). Names default to `$(USER)-…`, so they don't clash with classmates in the shared project.

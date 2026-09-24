@@ -4,7 +4,7 @@
 
 # Parameters
 OS_CLOUD    ?= chameleon
-VM_NAME     ?= chi-vm
+VM_NAME     ?= $(USER)-vm
 IMAGE       ?= CC-Ubuntu22.04
 FLAVOR      ?= m1.small
 NETWORK     ?= sharednet1
@@ -16,8 +16,8 @@ SSH_USER    ?= cc
 LEASE_NAME  ?= $(VM_NAME)-lease
 LEASE_HOURS ?= 4
 AMOUNT      ?= 1
-NODES       ?= chi-node1 chi-node2
-CLUSTER_LEASE ?= chi-cluster-lease
+NODES       ?= $(USER)-node1 $(USER)-node2
+CLUSTER_LEASE ?= $(USER)-cluster-lease
 
 OS := openstack --os-cloud $(OS_CLOUD)
 
@@ -122,7 +122,7 @@ fip:
 		&& echo "$(VM_NAME) -> $$ip"
 
 status:
-	$(OS) server show $(VM_NAME) -c name -c status -c addresses -c flavor -c image
+	$(OS) server show $(VM_NAME) -c name -c status -c addresses -c image
 
 list:
 	$(OS) server list
