@@ -99,7 +99,7 @@ Note:
 * [x] Assignment W2.2: GitHub Repository (Due Sep 10, 2026, 9am)
   * [x] Verify that you can write into a file in your assigned GitHub repository.
   * [x] Put something useful into the README such as your first and last name. [README.md](https://github.com/cloudmesh-ai-luc/shabbir04/blob/main/README.md)
-  * [x] Upload your public key. [LINK]
+  * [x] Upload your public key. [Shabbir04.keys](https://github.com/Shabbir04.keys)
 
 
 * [x] Assignment W2.3: Backup Your Computer (Due Sep 10, 2026, 9am)
