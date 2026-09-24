@@ -30,7 +30,7 @@ All of these are in [`review.py`](review.py):
 | Command-line arguments | `click`: `@click.argument` for positional values, `@click.option` for flags (`--count`, `--shout`) |
 | Shell commands | `os.system()` in `ls`, `subprocess.run()` in `run` |
 
-**click vs argparse:** with click, the function's parameters *are* the CLI arguments. The decorators turn `greet(name, count, shout)` into `greet NAME --count N --shout` and generate `--help` automatically.
+**click vs argparse:** with click, the function's parameters *are* the CLI arguments. The decorators turn `greet(name, count, shout)` into the `greet NAME --count N --shout` and generate `--help` automatically.
 
 ## 7. Running shell commands from Python
 * `os.system(cmd)` runs `cmd` in a shell. The output goes straight to the terminal, and you only get the exit code back.
