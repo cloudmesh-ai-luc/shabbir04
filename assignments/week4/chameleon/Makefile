@@ -28,8 +28,7 @@ FIP = $$($(OS) floating ip list --tags $(VM_NAME) -f value -c "Floating IP Addre
 
 .PHONY: help install check keypair secgroup setup lease lease-status lease-extend lease-delete \
 	create fip status list ip ssh start stop reboot delete release clean \
-	cluster-lease cluster-create cluster-status cluster-stop cluster-clean \
-	chi-up chi-down
+	cluster-lease cluster-create cluster-status cluster-stop cluster-clean
 
 help:
 	@echo "Usage: make <target> [VM_NAME=<name>] [OS_CLOUD=chameleon]"
@@ -59,8 +58,6 @@ help:
 	@echo "  cluster-status - List servers and the cluster lease"
 	@echo "  cluster-stop   - Stop all nodes"
 	@echo "  cluster-clean  - Delete all nodes and the cluster lease"
-	@echo "python-chi alternative:"
-	@echo "  chi-up / chi-down - Same lifecycle via chi_vm.py (python-chi)"
 
 # ---------- setup ----------
 install:
@@ -174,11 +171,3 @@ cluster-clean:
 		$(MAKE) --no-print-directory delete VM_NAME=$$node || true; \
 	done
 	$(MAKE) lease-delete LEASE_NAME=$(CLUSTER_LEASE)
-
-# ---------- python-chi ----------
-chi-up:
-	python3 chi_vm.py --cloud $(OS_CLOUD) up --lease $(LEASE_NAME) --hours $(LEASE_HOURS) \
-		--flavor $(FLAVOR) --image $(IMAGE) --key $(KEY_NAME) $(VM_NAME)
-
-chi-down:
-	python3 chi_vm.py --cloud $(OS_CLOUD) down --lease $(LEASE_NAME) $(VM_NAME)

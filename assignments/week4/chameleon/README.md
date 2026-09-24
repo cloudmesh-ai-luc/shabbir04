@@ -20,7 +20,6 @@ clouds:
 
 ## 2. python-chi
 * `pip install python-chi` (v1.2.10).
-* `chi_vm.py` does the same lifecycle with python-chi (`Lease` → `add_flavor_reservation` → `Server.submit` → `associate_floating_ip`). It reads credentials from the same `clouds.yaml` entry.
 
 ## 3. Targets needed for a single VM
 | Phase | Target | Why |
@@ -47,7 +46,6 @@ make clean
   make cluster-lease cluster-create NODES="n1 n2 n3"
   make cluster-clean NODES="n1 n2 n3"
   ```
-* **python-chi:** `python3 chi_vm.py up --lease L --key K n1 n2 n3` reserves 3 instances and boots all of them.
 
 ## 5. Test run (2026-09-24, KVM@TACC)
 | Step | Result |
