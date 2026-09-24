@@ -39,6 +39,7 @@ All of these are in [`review.py`](review.py):
 ## Example run
 ```
 $ python review.py ls .
+README.md
 review.py
 os.system exit code: 0
 
