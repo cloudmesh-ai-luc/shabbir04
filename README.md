@@ -5,15 +5,33 @@
 Note:
 *  put files in `<repor>/assignments/week3/`
 
+## Week 6
+
+* [ ] Assignment W6.1-5: VMs via Python (libcloud) (Due Oct 8, 2026, 9am)
+  * [x] Continue the libcloud assignment.
+  * [ ] Communicate in class.
+  * [x] Use GitHub: fork [Shabbir04/cloudmesh-ai-vm](https://github.com/Shabbir04/cloudmesh-ai-vm), one feature branch per fix.
+  * [x] Stay up to date with the latest commits (branches based on `main` @ 8b727be, Oct 6).
+  * [ ] Use two providers: **Multipass** (done), **Chameleon** (in progress).
+  * [x] Smoke test for at least one provider: Multipass smoke tests fixed and passing (`tests/smoke/test_multipass_smoke.py`, `tests/smoke/test_cli_multipass.py`, `tests/smoke-class/test-multipass-with-credentials-class.py`).
+  * [ ] Adapt the smoke test to a second provider (Chameleon).
+  * [x] Fix issues for the provider in separate, small, mergeable pull requests:
+    * [x] [#39](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/39) fix(multipass): restore `get_security_groups` (`cmx vm security-group list` crashed)
+    * [x] [#40](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/40) fix(multipass): `delete_key` removes the key uploaded under that name
+    * [x] [#41](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/41) test(multipass): use `key list` in CLI smoke test (`cmx vm keys` does not exist)
+    * [x] [#42](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/42) fix(multipass): list images with `multipass find` (`cmx vm image` always empty)
+    * [x] [#43](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/43) fix(multipass): `unshelve` starts the existing VM instead of launching a new one
+  * [x] Other: found that unit tests write into the real `~/.config/cloudmesh/clouds.yaml` (not yet reported).
+
 ## Week 5
 
 * [ ] Assignment W5.1: VMs via python (libcloud) (Due Oct 1, 2026, 9am)
-  * [ ] Fork and clone <https://github.com/cloudmesh-ai/cloudmesh-ai-vm>, work on feature branches, submit PRs.
-  * [ ] Cloud implementation: implement or improve commands for one or more providers (Local, OpenStack, or Hyperscalers).
-  * [ ] Code understanding: Click CLI ↔ `clouds.yaml` ↔ provider interfaces.
+  * [x] Fork and clone <https://github.com/cloudmesh-ai/cloudmesh-ai-vm>, work on feature branches, submit PRs (see Week 6).
+  * [x] Cloud implementation: improve commands for one provider (Multipass: unshelve, image, security-group, key delete).
+  * [x] Code understanding: Click CLI ↔ `clouds.yaml` ↔ provider interfaces.
   * [ ] Feature completeness: implement all mentioned commands across the selected clouds.
   * [ ] Validation: shell script (`verify_vm.sh`) showing success/failure of each command.
-  * [ ] Collaboration: GitHub issues, PRs, peer review, Piazza.
+  * [ ] Collaboration: GitHub issues, PRs, peer review, Piazza (PRs done).
   * [ ] Documentation: cloud-specific examples in the markdown docs.
   * [ ] Self-assessment: tasks completed, not completed, not understood, already done.
 
