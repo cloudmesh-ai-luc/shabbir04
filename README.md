@@ -37,6 +37,23 @@ Note:
     * Creating Chameleon leases through the API (CLI, python-chi) returns HTTP 500; leases were created in the dashboard.
   * [x] All test resources cleaned up (VMs, floating IPs, lease).
 
+### Self-assessment (Weeks 5 and 6)
+
+I did Weeks 5 and 6 together with Claude Code, an AI coding assistant. Claude ran the tests, tracked down the bugs and wrote most of the fixes. I picked the two providers, set up my Chameleon credentials and leases, and opened the pull requests from my account. Every commit lists Claude as co-author.
+
+**What I got done.** I started with Multipass on my Mac. Five things were broken, and they're fixed in PRs #39 to #43. All the Multipass smoke tests pass now. Chameleon was worse at first. Nothing worked, not even listing images. The reason turned out to be small: the `auth_url` in `clouds.yaml` ends in `/v3`, and libcloud adds its own `/v3`, so every call got a 404 (#47). After that fix, `info`, `suspend` and `restart` crashed (#44), and `run` couldn't find the public IP (#46). I also wrote a Chameleon smoke test (#45). It passes on KVM@TACC in about a minute and cleans up after itself.
+
+**What I didn't finish.**
+* I didn't use `verify_vm.sh`. I used the pytest smoke tests instead.
+* Not every command works yet. There's no command to attach a floating IP, and `cmx vm start` can't power a stopped VM back on. I didn't fix these because they change the CLI for every provider, and the assignment says to discuss new commands on Piazza first.
+* I didn't add provider examples to the docs.
+* I haven't opened GitHub issues or reviewed anyone else's PR yet.
+* Week 5 was late. My PRs went in on Oct 7, after the Oct 1 deadline.
+
+**What I didn't understand.** Creating a Chameleon lease through the API fails with HTTP 500, both with the `openstack` CLI and with python-chi. The same lease works fine in the dashboard. I still don't know why, so I made my leases in the dashboard.
+
+**What was already done.** I had fixed a startup crash on Sep 29 but never submitted it. When I came back, `main` already had the fix, so I deleted my branch. Also, the misspelled `security_groups` and `ssh_config` commands in the Chameleon CLI test had already been found by a classmate (it's noted in that test file).
+
 ## Week 5
 
 * [ ] Assignment W5.1: VMs via python (libcloud) (Due Oct 1, 2026, 9am)
@@ -47,7 +64,7 @@ Note:
   * [ ] Validation: shell script (`verify_vm.sh`) showing success/failure of each command.
   * [ ] Collaboration: GitHub issues, PRs, peer review, Piazza (PRs done).
   * [ ] Documentation: cloud-specific examples in the markdown docs.
-  * [ ] Self-assessment: tasks completed, not completed, not understood, already done.
+  * [x] Self-assessment: tasks completed, not completed, not understood, already done (see Self-assessment under Week 6).
 
 ## Week 4
 
