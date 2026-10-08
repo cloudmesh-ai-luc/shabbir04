@@ -7,27 +7,41 @@ Note:
 
 ## Week 6
 
-* [ ] Assignment W6.1-5: VMs via Python (libcloud) (Due Oct 8, 2026, 9am)
+* [x] Assignment W6.1-5: VMs via Python (libcloud) (Due Oct 8, 2026, 9am)
   * [x] Continue the libcloud assignment.
   * [ ] Communicate in class.
   * [x] Use GitHub: fork [Shabbir04/cloudmesh-ai-vm](https://github.com/Shabbir04/cloudmesh-ai-vm), one feature branch per fix.
-  * [x] Stay up to date with the latest commits (branches based on `main` @ 8b727be, Oct 6).
-  * [ ] Use two providers: **Multipass** (done), **Chameleon** (in progress).
+  * [x] Stay up to date with the latest commits (all branches based on `main` @ 8b727be, Oct 6).
+  * [x] Use two providers: **Multipass** (local, macOS) and **Chameleon** (KVM@TACC).
   * [x] Smoke test for at least one provider: Multipass smoke tests fixed and passing (`tests/smoke/test_multipass_smoke.py`, `tests/smoke/test_cli_multipass.py`, `tests/smoke-class/test-multipass-with-credentials-class.py`).
-  * [ ] Adapt the smoke test to a second provider (Chameleon).
-  * [x] Fix issues for the provider in separate, small, mergeable pull requests:
-    * [x] [#39](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/39) fix(multipass): restore `get_security_groups` (`cmx vm security-group list` crashed)
-    * [x] [#40](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/40) fix(multipass): `delete_key` removes the key uploaded under that name
-    * [x] [#41](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/41) test(multipass): use `key list` in CLI smoke test (`cmx vm keys` does not exist)
-    * [x] [#42](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/42) fix(multipass): list images with `multipass find` (`cmx vm image` always empty)
-    * [x] [#43](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/43) fix(multipass): `unshelve` starts the existing VM instead of launching a new one
-  * [x] Other: found that unit tests write into the real `~/.config/cloudmesh/clouds.yaml` (not yet reported).
+  * [x] Adapt the smoke test to a second provider: new `tests/smoke/test_chameleon_smoke.py` (start, info, list, floating IP, run over SSH, stop, restart, delete), passes against KVM@TACC in ~56 s.
+  * [x] Fix issues for each provider in separate, small, mergeable pull requests:
+    * Multipass
+      * [x] [#39](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/39) fix(multipass): restore `get_security_groups` (`cmx vm security-group list` crashed)
+      * [x] [#40](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/40) fix(multipass): `delete_key` removes the key uploaded under that name
+      * [x] [#41](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/41) test(multipass): use `key list` in CLI smoke test (`cmx vm keys` does not exist)
+      * [x] [#42](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/42) fix(multipass): list images with `multipass find` (`cmx vm image` always empty)
+      * [x] [#43](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/43) fix(multipass): `unshelve` starts the existing VM instead of launching a new one
+    * Chameleon / OpenStack
+      * [x] [#47](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/47) fix(openstack): strip `/v3` from `auth_url` (every libcloud call returned a Keystone 404)
+      * [x] [#44](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/44) fix(openstack): use `_find_node` in `info`, `suspend`, `restart` (driver has no `get_node`)
+      * [x] [#46](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/46) fix(openstack): read the floating IP from the libcloud node (`cmx vm run` found no IP)
+      * [x] [#45](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/45) test(chameleon): add real-cloud smoke test for KVM@TACC
+  * [x] With all 9 PRs merged together: 97/98 unit tests pass (remaining failure is the existing WSL2 `test_list_parsing`), all Multipass and Chameleon smoke tests pass.
+  * [x] Other (findings for class discussion, not fixed):
+    * `assign_floating_ip()` takes the first free floating IP in the project, which can be a classmate's in a shared project; no `cmx` command assigns a floating IP.
+    * `cmx vm start <name>` cannot power on a stopped VM ("already exists").
+    * Generated VM names are `user-N` instead of the user's name, so they can clash in a shared project.
+    * Unit tests write into the real `~/.config/cloudmesh/clouds.yaml`.
+    * `tests/unit/test_vm.py` imports the missing `cloudmesh.ai.cmc`; `ChameleonManager.py` fails to import (`List` not imported) but is unused by the CLI.
+    * Creating Chameleon leases through the API (CLI, python-chi) returns HTTP 500; leases were created in the dashboard.
+  * [x] All test resources cleaned up (VMs, floating IPs, lease).
 
 ## Week 5
 
 * [ ] Assignment W5.1: VMs via python (libcloud) (Due Oct 1, 2026, 9am)
-  * [x] Fork and clone <https://github.com/cloudmesh-ai/cloudmesh-ai-vm>, work on feature branches, submit PRs (see Week 6).
-  * [x] Cloud implementation: improve commands for one provider (Multipass: unshelve, image, security-group, key delete).
+  * [x] Fork and clone <https://github.com/cloudmesh-ai/cloudmesh-ai-vm>, work on feature branches, submit PRs (9 PRs, see Week 6).
+  * [x] Cloud implementation: improve commands for Multipass (unshelve, image, security-group, key delete) and OpenStack/Chameleon (auth, info, suspend, restart, run).
   * [x] Code understanding: Click CLI ↔ `clouds.yaml` ↔ provider interfaces.
   * [ ] Feature completeness: implement all mentioned commands across the selected clouds.
   * [ ] Validation: shell script (`verify_vm.sh`) showing success/failure of each command.
