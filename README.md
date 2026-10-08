@@ -36,7 +36,7 @@ Note:
   * [x] Other findings, not reported yet:
     * Unit tests write into the real `~/.config/cloudmesh/clouds.yaml`.
     * `tests/unit/test_vm.py` imports the missing `cloudmesh.ai.cmc`; `ChameleonManager.py` fails to import (`List` not imported) but is unused by the CLI.
-    * Creating Chameleon leases through the API (CLI, python-chi) returns HTTP 500; leases were created in the dashboard.
+    * Creating Chameleon leases through the API (CLI, python-chi) returns HTTP 500. Leases turned out not to be needed, since KVM@TACC runs VMs on demand.
   * [x] All test resources cleaned up (VMs, floating IPs, lease).
 
 ### Self-assessment (Week 6)
@@ -46,7 +46,7 @@ Note:
 **What I didn't finish.**
 * I still need to talk about this in class or on Piazza.
 * I only had time for two providers. I didn't try a third.
-* The Chameleon smoke test can't make its own lease, because the lease API fails for me (see Week 5). You have to create the lease in the dashboard first and pass its flavor in `CHAMELEON_FLAVOR`.
+* The Chameleon smoke test needs free capacity on KVM@TACC. When I tried a second VM at the same time, it failed with `No valid host was found`, so the test only starts one VM.
 * One finding isn't reported yet: the unit tests write into my real `~/.config/cloudmesh/clouds.yaml`.
 
 **What I didn't understand.** I'm not sure how `shelve` is supposed to work on a local provider. Multipass has no real shelve, so the code just stops the VM. I left it that way.
@@ -76,7 +76,7 @@ Note:
 * I haven't reviewed anyone else's PR yet.
 * I was late. My PRs went in on Oct 7, after the Oct 1 deadline.
 
-**What I didn't understand.** Creating a Chameleon lease through the API fails with HTTP 500, both with the `openstack` CLI and with python-chi. The same lease works fine in the dashboard. I still don't know why, so I made my leases in the dashboard.
+**What I didn't understand.** I thought KVM@TACC needed a lease (a reservation) before a VM could start, like the bare-metal sites. It doesn't. The professor pointed this out, and a plain `m1.small` VM started fine without one. I also still don't know why creating a lease through the API fails with HTTP 500 when the dashboard works, but since leases aren't needed, it no longer matters.
 
 **What was already done.** I had fixed a startup crash on Sep 29 but never submitted it. When I came back, `main` already had the fix, so I deleted my branch.
 
@@ -101,7 +101,7 @@ Note:
   * [x] Write a Makefile with all the targets needed to manage a single VM.
   * [x] Can you manage multiple machines?
   * [x] Check it into your repository. [chameleon/](https://github.com/cloudmesh-ai-luc/shabbir04/tree/main/assignments/week4/chameleon)
-  * [x] Other: tested on KVM@TACC (create, ssh, stop/start, clean). Lease creation via the API returns HTTP 500, so the lease was made in the dashboard (documented in the README).
+  * [x] Other: runs on KVM@TACC without a reservation, as the professor advised in issue #1 (re-tested Oct 7: create, ssh, stop/start, clean). A second on-demand VM fails with `No valid host` because of site capacity (documented in the README).
 
 * [x] Assignment W4.4: Review Python (Due Sep 24, 2026, 9am)
   * [x] Set up a python virtual environment (venv, not conda).
