@@ -1,6 +1,6 @@
 # Assignment W4.3: VM on Chameleon Cloud via Makefile
 
-All of this assignment runs on **KVM@TACC**, Chameleon's virtual machine site (<https://kvm.tacc.chameleoncloud.org>, project `CH-817419`), not on the bare-metal sites like CHI@TACC. The `chameleon` entry in `clouds.yaml` points at KVM@TACC, VMs use the reserved `m1.small` flavor, and `make check` prints the site before doing anything:
+All of this assignment runs on **KVM@TACC**, Chameleon's virtual machine site (<https://kvm.tacc.chameleoncloud.org>, project `CH-817419`), not on the bare-metal sites like CHI@TACC. The `chameleon` entry in `clouds.yaml` points at KVM@TACC, VMs use the regular `m1.small` flavor with no reservation (lease), and `make check` prints the site before doing anything:
 
 ```
 $ make check
@@ -10,7 +10,7 @@ Endpoint: https://kvm.tacc.chameleoncloud.org:5000/v3
 
 ## 1. OpenStack command-line client
 * `python-openstackclient` installed with `pipx`.
-* The Blazar plugin is added with `pipx inject python-openstackclient python-blazarclient`. It provides `openstack reservation ...`, which you need because KVM@TACC only boots VMs on a **reserved flavor**.
+* No reservation plugin is needed: KVM@TACC boots regular OpenStack flavors such as `m1.small` on demand.
 * Credentials: an application credential from the KVM@TACC dashboard (*Identity → Application Credentials*), stored in `~/.config/openstack/clouds.yaml`:
 
 ```yaml
@@ -33,37 +33,38 @@ clouds:
 | Phase | Target | Why |
 |---|---|---|
 | Setup | `install`, `check`, `keypair`, `secgroup` (`setup` runs the last three) | Install the tools, confirm auth, upload an SSH key, open port 22 |
-| Reserve | `lease`, `lease-status`, `lease-extend`, `lease-delete` | Chameleon needs a Blazar lease before a VM can boot |
-| Lifecycle | `create`, `start`, `stop`, `reboot`, `delete` | Boot on `reservation:<id>` flavor, change power state, delete |
+| Lifecycle | `create`, `start`, `stop`, `reboot`, `delete` | Boot an `m1.small` VM, change power state, delete |
 | Access | `fip`, `ip`, `ssh`, `status`, `list` | Public IP (tagged with the VM name), log in as `cc` |
-| Cleanup | `release`, `clean` | Free floating IPs and the lease so they don't count against your allocation |
+| Cleanup | `release`, `clean` | Delete the VM and free its floating IP so they don't count against the allocation |
 
 Typical run:
 ```bash
 make setup
-make lease
 make create
 make ssh
 make clean
 ```
 
 ## 4. Managing multiple machines
-* **Variable overrides:** `make lease create VM_NAME=worker1` sets up a separate VM with its own lease (`worker1-lease`).
-* **Cluster targets:** `cluster-lease` makes **one** lease with `amount = $(words $(NODES))`. `cluster-create` then runs `create` for each node on that lease. `cluster-clean` deletes the nodes and their IPs, then the lease.
+* **Variable overrides:** `make create VM_NAME=worker1` starts a separate VM; every target takes `VM_NAME=`.
+* **Cluster targets:** `cluster-create`, `cluster-stop` and `cluster-clean` loop over `NODES`.
   ```bash
-  make cluster-lease cluster-create NODES="n1 n2 n3"
+  make cluster-create NODES="n1 n2 n3"
   make cluster-clean NODES="n1 n2 n3"
   ```
+* **Limit:** on-demand VMs only start if KVM@TACC has free capacity. On Oct 7 the first `m1.small` started, but a second one failed with `No valid host was found. There are not enough hosts available.` (my project has no instance quota, so this is the site's capacity). `m1.tiny` is too small for the Ubuntu image. So in practice I could run one VM at a time.
 
-## 5. Test run (2026-09-24, KVM@TACC)
+## 5. Test runs on KVM@TACC
+**Oct 7, without a reservation** (current Makefile):
+
 | Step | Result |
 |---|---|
-| `make check` | Token issued with the application credential |
-| `make setup` | Keypair `khajashabbirahmed-key` uploaded, `allow-ssh` group (tcp/22) created |
-| `make lease` | **Failed**: Blazar API returns `500 Internal Server Error` for every lease request made with an application credential (also through python-chi and for floating-IP leases) |
-| Workaround | Lease `khajashabbirahmed-vm-lease` (1 × m1.small) created in the dashboard: *Reservations → Leases → Create Lease* |
-| `make create` | VM `khajashabbirahmed-vm` ACTIVE on flavor `reservation:<id>`, floating IP attached |
-| `make ssh` | Logged in as `cc` (Ubuntu 22.04, kernel 5.15) |
-| `make stop` / `make start` | SHUTOFF → ACTIVE, floating IP kept |
+| `make check` | `Site: KVM@TACC`, token issued |
+| `make setup` | Keypair `khajashabbirahmed-key` and `allow-ssh` group already exist |
+| `make create` | `khajashabbirahmed-vm` ACTIVE on `m1.small`, floating IP attached |
+| `make ssh` | Logged in as `cc` |
+| `make stop` / `make start` | SHUTOFF → ACTIVE |
+| `make cluster-create` | First node ACTIVE, second node `No valid host` (site capacity, see above) |
+| `make clean` / `make cluster-clean` | All VMs and floating IPs removed |
 
-A lease made in the dashboard works with every target because `create` only looks the lease up by name (`LEASE_NAME`). Names default to `$(USER)-…`, so they don't clash with classmates in the shared project.
+**Sep 24** (first version, with a reservation): same results for create, ssh, stop/start and clean. That version reserved a flavor with a Blazar lease first. The professor pointed out that KVM@TACC doesn't need a reservation, so I removed the lease targets. (Creating leases through the API also failed with HTTP 500, so the Sep 24 lease was made in the dashboard.)

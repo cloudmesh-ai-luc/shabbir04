@@ -1,6 +1,5 @@
 # Chameleon Cloud (KVM@TACC) VM management with the OpenStack CLI.
-# KVM@TACC requires a Blazar lease: reserve a flavor first, then boot
-# the VM on the reserved flavor "reservation:<reservation-id>".
+# KVM@TACC runs regular OpenStack VMs: no reservation (lease) is needed.
 
 # Parameters
 OS_CLOUD    ?= chameleon
@@ -13,56 +12,41 @@ KEY_NAME    ?= $(USER)-key
 PUBKEY      ?= $(HOME)/.ssh/id_ed25519.pub
 SECGROUP    ?= allow-ssh
 SSH_USER    ?= cc
-LEASE_NAME  ?= $(VM_NAME)-lease
-LEASE_HOURS ?= 4
-AMOUNT      ?= 1
 NODES       ?= $(USER)-node1 $(USER)-node2
-CLUSTER_LEASE ?= $(USER)-cluster-lease
 
 OS := openstack --os-cloud $(OS_CLOUD)
 
-# Reservation id of the flavor reservation inside $(LEASE_NAME)
-RES_ID = $$($(OS) reservation lease show $(LEASE_NAME) -f json | python3 -c \
-	'import json,sys; r=json.load(sys.stdin)["reservations"]; r=json.loads(r) if isinstance(r,str) else r; print((r[0] if isinstance(r,list) else r)["id"])')
 FIP = $$($(OS) floating ip list --tags $(VM_NAME) -f value -c "Floating IP Address" | head -1)
 
-.PHONY: help install check keypair secgroup setup lease lease-status lease-extend lease-delete \
+.PHONY: help install check keypair secgroup setup \
 	create fip status list ip ssh start stop reboot delete release clean \
-	cluster-lease cluster-create cluster-status cluster-stop cluster-clean
+	cluster-create cluster-status cluster-stop cluster-clean
 
 help:
 	@echo "Usage: make <target> [VM_NAME=<name>] [OS_CLOUD=chameleon]"
 	@echo "Setup:"
-	@echo "  install        - Install openstack CLI (+Blazar plugin) and python-chi"
+	@echo "  install        - Install openstack CLI and python-chi"
 	@echo "  check          - Show the Chameleon site (KVM@TACC) and verify credentials"
 	@echo "  keypair        - Upload $(PUBKEY) as keypair $(KEY_NAME)"
 	@echo "  secgroup       - Create security group $(SECGROUP) allowing SSH"
 	@echo "  setup          - check + keypair + secgroup"
-	@echo "Lease (reservation):"
-	@echo "  lease          - Reserve $(AMOUNT) x $(FLAVOR) for $(LEASE_HOURS)h"
-	@echo "  lease-status   - Show the lease"
-	@echo "  lease-extend   - Extend the lease by LEASE_HOURS"
-	@echo "  lease-delete   - Delete the lease (frees the reservation)"
 	@echo "Single VM:"
-	@echo "  create         - Boot VM on the reserved flavor, wait, attach floating IP"
+	@echo "  create         - Boot a $(FLAVOR) VM, wait, attach floating IP"
 	@echo "  status         - Show VM details"
 	@echo "  list           - List all servers"
 	@echo "  ip             - Print the VM floating IP"
 	@echo "  ssh            - SSH into the VM"
 	@echo "  start/stop/reboot"
-	@echo "  delete         - Delete VM and release its floating IP"
-	@echo "  clean          - delete + lease-delete"
+	@echo "  delete/clean   - Delete VM and release its floating IP"
 	@echo "Multiple VMs (NODES=\"$(NODES)\"):"
-	@echo "  cluster-lease  - One lease for $(words $(NODES)) instances"
-	@echo "  cluster-create - Create every node on that lease"
-	@echo "  cluster-status - List servers and the cluster lease"
+	@echo "  cluster-create - Create every node"
+	@echo "  cluster-status - List servers"
 	@echo "  cluster-stop   - Stop all nodes"
-	@echo "  cluster-clean  - Delete all nodes and the cluster lease"
+	@echo "  cluster-clean  - Delete all nodes and their floating IPs"
 
 # ---------- setup ----------
 install:
 	pipx install python-openstackclient || true
-	pipx inject python-openstackclient python-blazarclient
 	pip install python-chi
 
 check:
@@ -83,29 +67,10 @@ secgroup:
 
 setup: check keypair secgroup
 
-# ---------- lease ----------
-lease:
-	$(OS) reservation lease create \
-		--reservation resource_type=flavor:instance,flavor_id=$$($(OS) flavor show $(FLAVOR) -f value -c id),amount=$(AMOUNT) \
-		--end-date "$$(python3 -c 'import datetime as d; print((d.datetime.now(d.timezone.utc)+d.timedelta(hours=$(LEASE_HOURS))).strftime("%Y-%m-%d %H:%M"))')" \
-		$(LEASE_NAME)
-	@echo "Waiting for lease to become ACTIVE..."
-	@until [ "$$($(OS) reservation lease show $(LEASE_NAME) -f value -c status)" = "ACTIVE" ]; do sleep 5; done
-	@echo "Lease $(LEASE_NAME) ACTIVE, reservation $(RES_ID)"
-
-lease-status:
-	$(OS) reservation lease show $(LEASE_NAME)
-
-lease-extend:
-	$(OS) reservation lease set --prolong-for "$(LEASE_HOURS)h" $(LEASE_NAME)
-
-lease-delete:
-	-$(OS) reservation lease delete $(LEASE_NAME)
-
 # ---------- single VM ----------
 create:
 	$(OS) server create \
-		--flavor "reservation:$(RES_ID)" \
+		--flavor $(FLAVOR) \
 		--image $(IMAGE) \
 		--network $(NETWORK) \
 		--key-name $(KEY_NAME) \
@@ -148,20 +113,16 @@ release:
 delete: release
 	-$(OS) server delete --wait $(VM_NAME)
 
-clean: delete lease-delete
+clean: delete
 
 # ---------- multiple VMs ----------
-cluster-lease:
-	$(MAKE) lease LEASE_NAME=$(CLUSTER_LEASE) AMOUNT=$(words $(NODES))
-
 cluster-create:
 	@for node in $(NODES); do \
-		$(MAKE) --no-print-directory create VM_NAME=$$node LEASE_NAME=$(CLUSTER_LEASE) || true; \
+		$(MAKE) --no-print-directory create VM_NAME=$$node || true; \
 	done
 
 cluster-status:
 	$(OS) server list
-	$(OS) reservation lease show $(CLUSTER_LEASE) -c name -c status -c end_date
 
 cluster-stop:
 	@for node in $(NODES); do \
@@ -172,4 +133,3 @@ cluster-clean:
 	@for node in $(NODES); do \
 		$(MAKE) --no-print-directory delete VM_NAME=$$node || true; \
 	done
-	$(MAKE) lease-delete LEASE_NAME=$(CLUSTER_LEASE)
