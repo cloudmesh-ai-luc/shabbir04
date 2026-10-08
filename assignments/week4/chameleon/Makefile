@@ -34,7 +34,7 @@ help:
 	@echo "Usage: make <target> [VM_NAME=<name>] [OS_CLOUD=chameleon]"
 	@echo "Setup:"
 	@echo "  install        - Install openstack CLI (+Blazar plugin) and python-chi"
-	@echo "  check          - Verify credentials (issue a token)"
+	@echo "  check          - Show the Chameleon site (KVM@TACC) and verify credentials"
 	@echo "  keypair        - Upload $(PUBKEY) as keypair $(KEY_NAME)"
 	@echo "  secgroup       - Create security group $(SECGROUP) allowing SSH"
 	@echo "  setup          - check + keypair + secgroup"
@@ -66,6 +66,8 @@ install:
 	pip install python-chi
 
 check:
+	@echo "Site:     $$($(OS) configuration show -f value -c region_name)"
+	@echo "Endpoint: $$($(OS) configuration show -f value -c auth.auth_url)"
 	$(OS) token issue -c expires -c project_id
 
 keypair:

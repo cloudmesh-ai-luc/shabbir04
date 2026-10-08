@@ -1,5 +1,13 @@
 # Assignment W4.3: VM on Chameleon Cloud via Makefile
 
+All of this assignment runs on **KVM@TACC**, Chameleon's virtual machine site (<https://kvm.tacc.chameleoncloud.org>, project `CH-817419`), not on the bare-metal sites like CHI@TACC. The `chameleon` entry in `clouds.yaml` points at KVM@TACC, VMs use the reserved `m1.small` flavor, and `make check` prints the site before doing anything:
+
+```
+$ make check
+Site:     KVM@TACC
+Endpoint: https://kvm.tacc.chameleoncloud.org:5000/v3
+```
+
 ## 1. OpenStack command-line client
 * `python-openstackclient` installed with `pipx`.
 * The Blazar plugin is added with `pipx inject python-openstackclient python-blazarclient`. It provides `openstack reservation ...`, which you need because KVM@TACC only boots VMs on a **reserved flavor**.
