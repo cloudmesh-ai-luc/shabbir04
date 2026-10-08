@@ -28,10 +28,12 @@ Note:
       * [x] [#46](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/46) fix(openstack): read the floating IP from the libcloud node (`cmx vm run` found no IP)
       * [x] [#45](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/45) test(chameleon): add real-cloud smoke test for KVM@TACC
   * [x] With all 9 PRs merged together: 97/98 unit tests pass (remaining failure is the existing WSL2 `test_list_parsing`), all Multipass and Chameleon smoke tests pass.
-  * [x] Other (findings for class discussion, not fixed):
-    * `assign_floating_ip()` takes the first free floating IP in the project, which can be a classmate's in a shared project; no `cmx` command assigns a floating IP.
-    * `cmx vm start <name>` cannot power on a stopped VM ("already exists").
-    * Generated VM names are `user-N` instead of the user's name, so they can clash in a shared project.
+  * [x] Issues opened for problems that need a class decision before fixing:
+    * [x] [#48](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/issues/48) no command to attach a floating IP; `assign_floating_ip()` can take a classmate's free IP in a shared project
+    * [x] [#49](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/issues/49) `cmx vm start <name>` cannot power on a stopped VM ("already exists")
+    * [x] [#50](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/issues/50) generated VM names fall back to `user-N` instead of the login name
+  * [x] Commented on a classmate's issue: [#37](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/issues/37#issuecomment-6049958904) (Jetstream flavor 404 is likely the `/v3` bug fixed in #47).
+  * [x] Other findings, not reported yet:
     * Unit tests write into the real `~/.config/cloudmesh/clouds.yaml`.
     * `tests/unit/test_vm.py` imports the missing `cloudmesh.ai.cmc`; `ChameleonManager.py` fails to import (`List` not imported) but is unused by the CLI.
     * Creating Chameleon leases through the API (CLI, python-chi) returns HTTP 500; leases were created in the dashboard.
@@ -41,13 +43,13 @@ Note:
 
 I did Weeks 5 and 6 together with Claude Code, an AI coding assistant. Claude ran the tests, tracked down the bugs and wrote most of the fixes. I picked the two providers, set up my Chameleon credentials and leases, and opened the pull requests from my account. Every commit lists Claude as co-author.
 
-**What I got done.** I started with Multipass on my Mac. Five things were broken, and they're fixed in PRs #39 to #43. All the Multipass smoke tests pass now. Chameleon was worse at first. Nothing worked, not even listing images. The reason turned out to be small: the `auth_url` in `clouds.yaml` ends in `/v3`, and libcloud adds its own `/v3`, so every call got a 404 (#47). After that fix, `info`, `suspend` and `restart` crashed (#44), and `run` couldn't find the public IP (#46). I also wrote a Chameleon smoke test (#45). It passes on KVM@TACC in about a minute and cleans up after itself.
+**What I got done.** I started with Multipass on my Mac. Five things were broken, and they're fixed in PRs #39 to #43. All the Multipass smoke tests pass now. Chameleon was worse at first. Nothing worked, not even listing images. The reason turned out to be small: the `auth_url` in `clouds.yaml` ends in `/v3`, and libcloud adds its own `/v3`, so every call got a 404 (#47). After that fix, `info`, `suspend` and `restart` crashed (#44), and `run` couldn't find the public IP (#46). I also wrote a Chameleon smoke test (#45). It passes on KVM@TACC in about a minute and cleans up after itself. AnieWall's Jetstream issue #37 had the same 404, so I pointed it to #47 in a comment.
 
 **What I didn't finish.**
 * I didn't use `verify_vm.sh`. I used the pytest smoke tests instead.
-* Not every command works yet. There's no command to attach a floating IP, and `cmx vm start` can't power a stopped VM back on. I didn't fix these because they change the CLI for every provider, and the assignment says to discuss new commands on Piazza first.
+* Not every command works yet. There's no command to attach a floating IP, and `cmx vm start` can't power a stopped VM back on. I didn't fix these because they change the CLI for every provider, and the assignment says to discuss new commands first. I opened issues for them (#48, #49) to ask how the class wants them done.
 * I didn't add provider examples to the docs.
-* I haven't opened GitHub issues or reviewed anyone else's PR yet.
+* I haven't reviewed anyone else's PR yet. I opened issues #48 to #50 for the problems above, but one more finding (the unit tests writing into my real `clouds.yaml`) isn't reported yet.
 * Week 5 was late. My PRs went in on Oct 7, after the Oct 1 deadline.
 
 **What I didn't understand.** Creating a Chameleon lease through the API fails with HTTP 500, both with the `openstack` CLI and with python-chi. The same lease works fine in the dashboard. I still don't know why, so I made my leases in the dashboard.
@@ -62,7 +64,7 @@ I did Weeks 5 and 6 together with Claude Code, an AI coding assistant. Claude ra
   * [x] Code understanding: Click CLI ↔ `clouds.yaml` ↔ provider interfaces.
   * [ ] Feature completeness: implement all mentioned commands across the selected clouds.
   * [ ] Validation: shell script (`verify_vm.sh`) showing success/failure of each command.
-  * [ ] Collaboration: GitHub issues, PRs, peer review, Piazza (PRs done).
+  * [ ] Collaboration: GitHub issues, PRs, peer review, Piazza (9 PRs, 3 issues and 1 comment done; no PR reviews yet).
   * [ ] Documentation: cloud-specific examples in the markdown docs.
   * [x] Self-assessment: tasks completed, not completed, not understood, already done (see Self-assessment under Week 6).
 
