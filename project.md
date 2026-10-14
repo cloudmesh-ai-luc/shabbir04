@@ -7,7 +7,7 @@
 | **Contact**      | <kahmed5@luc.edu>                                                |
 | **Instructor**   | Gregor von Laszewski                                             |
 | **Repository**   | https://github.com/cloudmesh-ai-luc/shabbir04                    |
-| **Date**         | *Oct. 14, 2026*                                                  |
+| **Date**         | *Sep. 22, 2026*                                                  |
 
 ---
 
