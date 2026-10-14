@@ -5,6 +5,22 @@
 Note:
 *  put files in `<repor>/assignments/week3/`
 
+## Week 7
+
+* [ ] Assignment W7.1: VMs via Python (libcloud) (Due Oct 15, 2026, 9am)
+  * [x] Base the work on the newest `dev2` (branch `feature/vm-ip-command`, rebased on `dev2` @ c436128).
+  * [ ] Work on three clouds:
+    * [x] Local: Multipass
+    * [x] OpenStack: Chameleon KVM@TACC (tested `cmx vm start`, `list`, `ip assign`, `delete` on Oct 14)
+    * [ ] Public: AWS (account and credentials not set up yet)
+  * [x] Small pull requests:
+    * [x] [#66](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/66) feat(vm): add `cmx vm ip assign` and `cmx vm ip release` (requested in #48), tested on Chameleon
+  * [x] Follow-up on my issue [#48](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/issues/48#issuecomment-6179469803): `start --ip yes/no` exists on `dev2`; releasing a floating IP fails on Chameleon (python-chi gets a 404), so IPs stay reserved after `cmx vm delete`.
+* [ ] Assignment W7.2: Summary of my contribution to cm-x (present at this week's meeting)
+* [ ] Assignment W7.3: Project presentation
+  * [x] [project.md](project.md) rewritten: one ML inference service on three clouds with `cmx vm`, how it covers Cloud Computing, DevOps and AI, three features (AI review filter, live monitoring, multi-cloud failover) and an Issues section. Not written as a proposal.
+  * [ ] Present the project in class.
+
 ## Week 6
 
 * [x] Assignment W6.1-5: VMs via Python (libcloud) (Due Oct 8, 2026, 9am)
