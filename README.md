@@ -16,10 +16,51 @@ Note:
   * [x] Small pull requests:
     * [x] [#66](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/66) feat(vm): add `cmx vm ip assign` and `cmx vm ip release` (requested in #48), tested on Chameleon
   * [x] Follow-up on my issue [#48](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/issues/48#issuecomment-6179469803): `start --ip yes/no` exists on `dev2`; releasing a floating IP fails on Chameleon (python-chi gets a 404), so IPs stay reserved after `cmx vm delete`.
-* [ ] Assignment W7.2: Summary of my contribution to cm-x (present at this week's meeting)
+* [ ] Assignment W7.2: Summary of my contribution to cm-x
+  * [x] [Summary written](#w72-summary-my-contributions-to-cmx-cloudmesh-ai-vm) (below).
+  * [ ] Present it at this week's meeting.
 * [ ] Assignment W7.3: Project presentation
   * [x] [project.md](project.md) rewritten: one ML inference service on three clouds with `cmx vm`, how it covers Cloud Computing, DevOps and AI, three features (AI review filter, live monitoring, multi-cloud failover) and an Issues section. Not written as a proposal.
   * [ ] Present the project in class.
+
+### W7.2 Summary: My contributions to cmx (cloudmesh-ai-vm)
+
+**At a glance**
+* **10 pull requests:** 2 merged, 7 closed because the same fixes are now in the newer code, 1 open
+* **3 issues:** 2 led to changes in cmx, 1 is still open
+* **Tested on real VMs** on two clouds: Multipass (local) and Chameleon KVM@TACC (OpenStack)
+
+**Multipass (local cloud)**
+* Merged [#39](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/39): `cmx vm security-group list` works again on Multipass.
+* Merged [#41](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/41): fixed the CLI smoke test, which called a `keys` command that doesn't exist.
+* Found and fixed three more bugs (#40, #42, #43), closed because the same fixes are now in the code:
+  * `image` was always empty, because `multipass images` isn't a real command
+  * `unshelve` tried to create a new VM instead of starting the existing one
+  * `key delete` removed nothing
+
+**Chameleon / OpenStack**
+* Found why every libcloud call to Chameleon failed: the login URL got `/v3` twice ([#47](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/47)). The professor confirmed that Jetstream's and Chameleon's `clouds.yaml` files differ here.
+* Fixed `info` / `suspend` / `restart` (#44) and the floating-IP lookup (#46). These were closed when the OpenStack code moved to openstacksdk.
+* Wrote a Chameleon smoke test (#45). It was replaced by the new shared smoke test for all providers.
+
+**New command (Week 7)**
+* Open [#66](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/66): `cmx vm ip assign` / `cmx vm ip release`, which the professor asked for in #48. Tested on Chameleon.
+
+**Issues that changed cmx**
+* [#49](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/issues/49): `cmx vm start <name>` now powers on a stopped VM (fixed Oct 12).
+* [#50](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/issues/50): cmx now stops with a clear message when no username is set, instead of naming VMs `user-N`.
+* [#48](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/issues/48) (open): besides the new command, I found that releasing floating IPs fails on Chameleon. python-chi uses a compute call Chameleon no longer supports, so IPs stay reserved (14 reserved, none attached).
+
+**Helping others**
+* On AnieWall's [#37](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/issues/37), I pointed out that the Jetstream 404 was the same `/v3` bug.
+
+**What I learned**
+* How cmx fits together: Click commands, then `clouds.yaml`, then one provider class per cloud.
+* How libcloud, openstacksdk and python-chi talk to OpenStack, and where each one breaks.
+* **Check the newest branch first.** Five of my first PRs overlapped with fixes the professor was already making on `dev2`, which I hadn't looked at. My Week 7 work starts from `dev2`.
+
+**Next**
+* AWS as my third cloud, getting #66 reviewed, and a fix for releasing IPs if the professor wants one.
 
 ## Week 6
 
