@@ -169,7 +169,7 @@ keep working through Chameleon.
 | Monitor | `/stats` + `monitor.py` | Shows live requests, errors and average response time for all three clouds |
 | Clean up | `cmx vm delete` | Removes the VM (and the Chameleon lease) after each session |
 
-The Python environment is a `venv` with `pip`, not conda, as required in class.
+The Python environment is a `venv` with `pip`, not conda, which keeps the VMs and containers clean.
 
 ### 5.4 AI / Model Serving
 
@@ -292,8 +292,8 @@ FastAPI middleware counts them for every request, and `monitor.py` reads them.
 - **AWS is not set up yet.** I still need the account and credentials, and I have not tested whether the
   `aws` provider in `cmx vm` supports everything the deploy script needs (public IP, security group rule).
   If not, I open the port in the AWS console and report the gap.
-- **Which Chameleon code to use.** The Week 7 notes point to `dev2`, but also to `standalone` and the
-  `feature/chameleon-native-chi` branch. I am not sure which one becomes the main version.
+- **Which Chameleon code to use.** `cmx vm` has two versions for Chameleon: the `dev2` branch and the
+  `feature/chameleon-native-chi` branch. I need to know which one the project should build on.
 - **Chameleon clean-up gaps.** `cmx vm delete` does not end the lease, and releasing a floating IP fails
   because python-chi uses a compute call that KVM@TACC no longer supports, so IPs stay reserved
   (reported in [#48](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/issues/48) and
