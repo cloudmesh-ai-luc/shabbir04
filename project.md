@@ -75,6 +75,8 @@ requests (for example the `cmx vm ip` command).
 
 ### 5.1 Architecture
 
+![InferScale architecture: GitHub Actions builds one Docker image; cmx vm on my laptop runs it on Multipass, Chameleon and AWS](images/architecture.svg)
+
 ```mermaid
 flowchart LR
     GH[GitHub repo] -->|push| CI[GitHub Actions<br/>test + build image]
