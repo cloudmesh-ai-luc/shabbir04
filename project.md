@@ -337,7 +337,6 @@ status code and response time, in the format Prometheus reads.
   `feature/chameleon-native-chi` branch. I need to know which one the project should build on.
 - **Chameleon clean-up gaps.** `cmx vm delete` does not end the lease, and releasing a floating IP fails
   because python-chi uses a compute call that KVM@TACC no longer supports, so IPs stay reserved.
-- **`cmx vm --cloud` is ignored on `dev2`**, so the deploy script switches clouds with `cmx vm cloud set`.
 - **Is 2 GB enough** for DistilBERT plus Docker? If not, I add swap or use a smaller model.
 - **The VMs are not identical** (`t3.small` has 2 vCPUs, `m1.small` has 1), so the results note the
   differences instead of treating them as a perfectly fair comparison.
