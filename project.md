@@ -28,7 +28,7 @@ of all three clouds, and **multi-cloud failover**.
 
 **Result.** A repeatable, automated workflow and a side-by-side comparison of deployment time, response
 time and cost on the three clouds. Where `cmx vm` falls short for this workflow, I fix it in small pull
-requests (for example the `cmx vm ip` command, [#66](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/66)).
+requests (for example the `cmx vm ip` command).
 
 ---
 
@@ -134,8 +134,7 @@ cmx vm delete inferscale                   # Chameleon: then delete the lease
 ```
 
 On Chameleon a VM can also be started without an IP (`cmx vm start inferscale --ip no`) and get one
-later with `cmx vm ip assign inferscale`, the command I added in
-[#66](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/66).
+later with `cmx vm ip assign inferscale`.
 
 **Multi-cloud failover.** `deploy.sh` writes each cloud's IP into a small config file. `client.py` tries
 the clouds in order, so the service keeps answering when one cloud is down:
@@ -219,7 +218,7 @@ FastAPI middleware counts them for every request, and `monitor.py` reads them.
 | Phase | Tasks | When | Status |
 | ----- | ----- | ---- | ------ |
 | Topic | Title, first summary | Sep 23 – Oct 1 | Done |
-| `cmx vm` on two clouds | VM lifecycle on Multipass and Chameleon; fixes merged ([#39](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/39), [#41](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/41)); `cmx vm ip` command ([#66](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/66)) | Sep 29 – Oct 14 | Done |
+| `cmx vm` on two clouds | VM lifecycle on Multipass and Chameleon, including the `cmx vm ip` command | Sep 29 – Oct 14 | Done |
 | Simpler design | Three clouds + `cmx vm` instead of Kubernetes | Oct 14 | Done |
 | Third cloud | AWS account and credentials, first `cmx vm` VM on AWS | Oct 15 – Oct 22 | Next |
 | Service | FastAPI + model, review filter (`/filter`), `/stats`, Dockerfile, tests | Oct 15 – Oct 29 | Next |
@@ -295,9 +294,7 @@ FastAPI middleware counts them for every request, and `monitor.py` reads them.
 - **Which Chameleon code to use.** `cmx vm` has two versions for Chameleon: the `dev2` branch and the
   `feature/chameleon-native-chi` branch. I need to know which one the project should build on.
 - **Chameleon clean-up gaps.** `cmx vm delete` does not end the lease, and releasing a floating IP fails
-  because python-chi uses a compute call that KVM@TACC no longer supports, so IPs stay reserved
-  (reported in [#48](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/issues/48) and
-  [#66](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/66)).
+  because python-chi uses a compute call that KVM@TACC no longer supports, so IPs stay reserved.
 - **`cmx vm --cloud` is ignored on `dev2`**, so the deploy script switches clouds with `cmx vm cloud set`.
 - **Is 2 GB enough** for DistilBERT plus Docker? If not, I add swap or use a smaller model.
 - **The VMs are not identical** (`t3.small` has 2 vCPUs, `m1.small` has 1), so the results note the
