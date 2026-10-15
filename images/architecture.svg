@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" width="1200" height="600" font-family="Helvetica, Arial, sans-serif" role="img" aria-labelledby="title desc">
   <title id="title">InferScale architecture</title>
-  <desc id="desc">GitHub Actions tests and builds one Docker image and pushes it to the GitHub Container Registry. On my laptop, deploy.sh drives cmx vm, which starts, runs and deletes VMs on Multipass, Chameleon KVM@TACC and AWS EC2. Each VM pulls the same image. client.py (failover) and Locust reach the service over HTTP on port 8000, and Prometheus collects /metrics from every VM; Grafana shows the dashboard and alerts.</desc>
+  <desc id="desc">GitHub Actions tests the code, builds two Docker images (web and api) and pushes them to the GitHub Container Registry. On my laptop, deploy.sh drives cmx vm, which starts, runs and deletes VMs on Multipass, Chameleon KVM@TACC and AWS EC2. Each VM runs two tiers: a web container (nginx, port 80, the only public port) that forwards /api to an api container (FastAPI + DistilBERT). The browser, client.py (failover), Locust and Prometheus reach each cloud over HTTP on port 80; Grafana shows the dashboard and alerts.</desc>
   <defs>
     <marker id="arrowNavy" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="#14213D"/>
@@ -31,14 +31,15 @@
 
   <rect x="40" y="226" width="250" height="78" rx="10" fill="#FFFFFF" stroke="#C7CED8" stroke-width="1.5"/>
   <text x="165" y="258" font-size="17" font-weight="bold" fill="#14213D" text-anchor="middle">GitHub Actions</text>
-  <text x="165" y="282" font-size="14" fill="#4A5568" text-anchor="middle">test + build image</text>
+  <text x="165" y="282" font-size="14" fill="#4A5568" text-anchor="middle">test + build 2 images</text>
 
   <line x1="165" y1="304" x2="165" y2="352" stroke="#14213D" stroke-width="2" marker-end="url(#arrowNavy)"/>
-  <text x="177" y="333" font-size="13" fill="#4A5568">push image</text>
+  <text x="177" y="333" font-size="13" fill="#4A5568">push images</text>
 
   <rect x="40" y="356" width="250" height="78" rx="10" fill="#FFFFFF" stroke="#C7CED8" stroke-width="1.5"/>
-  <text x="165" y="388" font-size="16" font-weight="bold" fill="#14213D" text-anchor="middle">GitHub Container Registry</text>
-  <text x="165" y="412" font-size="12.5" fill="#4A5568" text-anchor="middle" font-family="Menlo, Consolas, monospace">ghcr.io/shabbir04/inferscale</text>
+  <text x="165" y="381" font-size="16" font-weight="bold" fill="#14213D" text-anchor="middle">GitHub Container Registry</text>
+  <text x="165" y="404" font-size="12" fill="#4A5568" text-anchor="middle" font-family="Menlo, Consolas, monospace">ghcr.io/shabbir04/inferscale-web</text>
+  <text x="165" y="421" font-size="12" fill="#4A5568" text-anchor="middle" font-family="Menlo, Consolas, monospace">ghcr.io/shabbir04/inferscale-api</text>
 
   <!-- ===== My laptop ===== -->
   <rect x="350" y="70" width="370" height="410" rx="14" fill="#F4F7FB" stroke="#9AA5B1" stroke-width="1.5"/>
@@ -51,39 +52,42 @@
   <text x="627" y="152" font-size="15" font-weight="bold" fill="#FFFFFF" text-anchor="middle" font-family="Menlo, Consolas, monospace">cmx vm</text>
 
   <text x="372" y="222" font-size="13" font-weight="bold" fill="#4A5568" letter-spacing="1">CLIENTS</text>
-  <rect x="372" y="234" width="326" height="52" rx="8" fill="#FFFFFF" stroke="#C7CED8" stroke-width="1.5"/>
-  <text x="390" y="266" font-size="15" fill="#14213D" font-family="Menlo, Consolas, monospace">client.py</text>
-  <text x="482" y="266" font-size="14" fill="#4A5568">multi-cloud failover</text>
-  <rect x="372" y="298" width="326" height="52" rx="8" fill="#FFFFFF" stroke="#C7CED8" stroke-width="1.5"/>
-  <text x="390" y="330" font-size="15" font-weight="bold" fill="#14213D">Prometheus + Grafana</text>
-  <text x="560" y="330" font-size="14" fill="#4A5568">dashboard, alerts</text>
-  <rect x="372" y="362" width="326" height="52" rx="8" fill="#FFFFFF" stroke="#C7CED8" stroke-width="1.5"/>
-  <text x="390" y="394" font-size="15" fill="#14213D" font-family="Menlo, Consolas, monospace">Locust</text>
-  <text x="458" y="394" font-size="14" fill="#4A5568">load test</text>
+  <rect x="372" y="232" width="326" height="44" rx="8" fill="#FFFFFF" stroke="#C7CED8" stroke-width="1.5"/>
+  <text x="390" y="260" font-size="15" font-weight="bold" fill="#14213D">Browser</text>
+  <text x="458" y="260" font-size="14" fill="#4A5568">web page (frontend tier)</text>
+  <rect x="372" y="284" width="326" height="44" rx="8" fill="#FFFFFF" stroke="#C7CED8" stroke-width="1.5"/>
+  <text x="390" y="312" font-size="15" fill="#14213D" font-family="Menlo, Consolas, monospace">client.py</text>
+  <text x="482" y="312" font-size="14" fill="#4A5568">multi-cloud failover</text>
+  <rect x="372" y="336" width="326" height="44" rx="8" fill="#FFFFFF" stroke="#C7CED8" stroke-width="1.5"/>
+  <text x="390" y="364" font-size="15" font-weight="bold" fill="#14213D">Prometheus + Grafana</text>
+  <text x="560" y="364" font-size="14" fill="#4A5568">dashboard, alerts</text>
+  <rect x="372" y="388" width="326" height="44" rx="8" fill="#FFFFFF" stroke="#C7CED8" stroke-width="1.5"/>
+  <text x="390" y="416" font-size="15" fill="#14213D" font-family="Menlo, Consolas, monospace">Locust</text>
+  <text x="458" y="416" font-size="14" fill="#4A5568">load test</text>
 
-  <text x="372" y="452" font-size="13" fill="#4A5568">Python venv + pip (no conda)</text>
+  <text x="372" y="460" font-size="13" fill="#4A5568">Python venv + pip (no conda)</text>
 
   <!-- ===== Three clouds ===== -->
   <rect x="800" y="70" width="360" height="410" rx="14" fill="#EAF0F7" stroke="#9AA5B1" stroke-width="1.5" stroke-dasharray="7 5"/>
-  <text x="822" y="100" font-size="13" font-weight="bold" fill="#2563EB" letter-spacing="1.5">THREE CLOUDS · SAME DOCKER IMAGE</text>
+  <text x="822" y="100" font-size="13" font-weight="bold" fill="#2563EB" letter-spacing="1.5">THREE CLOUDS · SAME TWO CONTAINERS</text>
 
   <rect x="822" y="114" width="316" height="106" rx="10" fill="#FFFFFF" stroke="#C7CED8" stroke-width="1.5"/>
   <text x="840" y="140" font-size="16" font-weight="bold" fill="#14213D">Multipass VM</text>
   <text x="840" y="161" font-size="13" fill="#2563EB">local cloud</text>
   <text x="840" y="182" font-size="13" fill="#4A5568">cmx vm: start · run · delete</text>
-  <text x="840" y="203" font-size="13" fill="#4A5568">Docker: FastAPI + DistilBERT, port 8000</text>
+  <text x="840" y="203" font-size="13" fill="#4A5568">web (nginx, :80) → api (FastAPI + model)</text>
 
   <rect x="822" y="232" width="316" height="106" rx="10" fill="#FFFFFF" stroke="#C7CED8" stroke-width="1.5"/>
   <text x="840" y="258" font-size="16" font-weight="bold" fill="#14213D">Chameleon KVM@TACC VM</text>
   <text x="840" y="279" font-size="13" fill="#2563EB">OpenStack cloud</text>
   <text x="840" y="300" font-size="13" fill="#4A5568">cmx vm: start · ip assign · run · delete</text>
-  <text x="840" y="321" font-size="13" fill="#4A5568">Docker: FastAPI + DistilBERT, port 8000</text>
+  <text x="840" y="321" font-size="13" fill="#4A5568">web (nginx, :80) → api (FastAPI + model)</text>
 
   <rect x="822" y="350" width="316" height="106" rx="10" fill="#FFFFFF" stroke="#C7CED8" stroke-width="1.5"/>
   <text x="840" y="376" font-size="16" font-weight="bold" fill="#14213D">AWS EC2 VM</text>
   <text x="840" y="397" font-size="13" fill="#2563EB">public cloud</text>
   <text x="840" y="418" font-size="13" fill="#4A5568">cmx vm: start · run · delete</text>
-  <text x="840" y="439" font-size="13" fill="#4A5568">Docker: FastAPI + DistilBERT, port 8000</text>
+  <text x="840" y="439" font-size="13" fill="#4A5568">web (nginx, :80) → api (FastAPI + model)</text>
 
   <!-- ===== Edges between columns ===== -->
   <!-- cmx vm manages the VMs -->
@@ -92,11 +96,10 @@
   <text x="760" y="166" font-size="13" fill="#2563EB" text-anchor="middle">VMs</text>
 
   <!-- all three clients reach the service -->
-  <path d="M698,260 L710,260 M698,324 L710,324 M698,388 L710,388 M710,258.8 L710,389.2" fill="none" stroke="#2563EB" stroke-width="2.5"/>
-  <line x1="710" y1="324" x2="796" y2="324" stroke="#2563EB" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
-  <text x="760" y="314" font-size="13" font-weight="bold" fill="#2563EB" text-anchor="middle">HTTP</text>
-  <text x="760" y="344" font-size="13" fill="#2563EB" text-anchor="middle">:8000</text>
-  <text x="760" y="362" font-size="12" fill="#2563EB" text-anchor="middle">/metrics</text>
+  <path d="M698,254 L710,254 M698,306 L710,306 M698,358 L710,358 M698,410 L710,410 M710,252.8 L710,411.2" fill="none" stroke="#2563EB" stroke-width="2.5"/>
+  <line x1="710" y1="332" x2="796" y2="332" stroke="#2563EB" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+  <text x="757" y="322" font-size="13" font-weight="bold" fill="#2563EB" text-anchor="middle">HTTP</text>
+  <text x="757" y="352" font-size="13" fill="#2563EB" text-anchor="middle">:80</text>
 
   <!-- registry to VMs: docker pull -->
   <path d="M165,434 L165,540 L980,540 L980,484" fill="none" stroke="#6B7280" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#arrowGray)"/>

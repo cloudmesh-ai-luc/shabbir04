@@ -17,8 +17,9 @@
 way to create VMs, give them a public IP and clean them up. That makes deployments hard to repeat and
 clouds hard to compare fairly.
 
-**What InferScale does.** InferScale is a small machine-learning inference service: a sentiment-analysis
-model (DistilBERT) behind a FastAPI REST API, packaged as one Docker image. The same image runs on three
+**What InferScale does.** InferScale is a small two-tier machine-learning service: a web frontend (nginx and
+a small HTML/JavaScript page) in front of a backend that serves a sentiment-analysis model (DistilBERT)
+through a FastAPI REST API. Each tier is its own Docker container, and the same two containers run on three
 clouds: **Multipass** on my laptop (local), **Chameleon KVM@TACC** (OpenStack) and **AWS EC2** (public
 cloud). All VMs are created, reached and deleted with one tool, **`cmx vm`** from the class project
 [cloudmesh-ai-vm](https://github.com/cloudmesh-ai/cloudmesh-ai-vm), which I also contribute to. One
@@ -36,7 +37,7 @@ requests (for example the `cmx vm ip` command).
 
 | Area | How InferScale addresses it |
 | ---- | --------------------------- |
-| **Cloud Computing** | Runs the same service as VMs (IaaS) on three different kinds of cloud: a local hypervisor, an OpenStack research cloud and a public cloud. Uses each cloud's networking (local IP, floating IP, public IP), security groups, Chameleon leases, and compares cost. `cmx vm` hides the differences behind one command line. **Feature: multi-cloud failover.** When one cloud is down, requests go to the next cloud. |
+| **Cloud Computing** | Runs the same service as VMs (IaaS) on three different kinds of cloud: a local hypervisor, an OpenStack research cloud and a public cloud. Each VM runs a two-tier application: a public web frontend in front of a private model backend. Uses each cloud's networking (local IP, floating IP, public IP), security groups, Chameleon leases, and compares cost. `cmx vm` hides the differences behind one command line. **Feature: multi-cloud failover.** When one cloud is down, requests go to the next cloud. |
 | **DevOps** | GitHub flow (branches, pull requests, issues), automated tests and Docker builds with GitHub Actions, a container registry, one deploy script for all clouds, a smoke test after every deployment, and clean-up so nothing keeps running. **Feature: live monitoring with alerts.** Every VM reports its requests, errors and response time at `/metrics`. Prometheus collects them from all three clouds, Grafana shows them on one dashboard, and an alert fires when a cloud stops answering or has too many errors. |
 | **AI** | The workload is an AI model: DistilBERT sentiment analysis served for inference on CPU. The project measures how fast that model answers on each cloud. **Feature: review filter.** The model returns only the reviews with a chosen label (for example, negative) that it is confident about. |
 
@@ -46,7 +47,7 @@ requests (for example the `cmx vm ip` command).
 
 | # | Objective | Success criterion |
 | - | --------- | ----------------- |
-| 1 | Package the inference service as a Docker image | `/health` and `/predict` pass the tests; the image is built by CI |
+| 1 | Package the frontend and backend tiers as Docker images | `/health` and `/predict` pass the tests; the web page shows a prediction; CI builds both images |
 | 2 | Run the service on three clouds using `cmx vm` for all VM management | `/predict` answers on Multipass, Chameleon and AWS |
 | 3 | Automate the deployment | `./deploy.sh <cloud>` goes from no VM to a working service with one command |
 | 4 | Measure and compare the clouds | A results table with deploy time, latency (p50/p95), success rate and cost per cloud |
@@ -61,13 +62,14 @@ requests (for example the `cmx vm ip` command).
 
 | In scope | Out of scope |
 | -------- | ------------ |
-| Inference service (FastAPI + DistilBERT) and its Docker image | Training or fine-tuning models |
+| Two tiers: web frontend (nginx + HTML/JavaScript) and backend (FastAPI + DistilBERT), each in its own Docker image | Training or fine-tuning models |
 | Three clouds: Multipass, Chameleon KVM@TACC, AWS EC2 | Kubernetes and autoscaling (dropped to keep the project simple) |
 | Deploy script built on `cmx vm` | GPUs |
 | CI with GitHub Actions | High availability and 24/7 monitoring (monitoring runs only during my sessions) |
 | Load test and comparison of the three clouds | Other public clouds (Azure, GCP) |
 | Small fixes to `cmx vm` | A load balancer in front of the clouds (failover is done in the client) |
 | Three features: review filter, live monitoring with alerts, multi-cloud failover | Sending alerts by email or chat (alerts are shown in Prometheus and Grafana) |
+| | User logins and frontend frameworks such as React |
 
 ---
 
@@ -75,7 +77,7 @@ requests (for example the `cmx vm ip` command).
 
 ### 5.1 Architecture
 
-![InferScale architecture: GitHub Actions builds one Docker image; cmx vm on my laptop runs it on Multipass, Chameleon and AWS](images/architecture.svg)
+![InferScale architecture: GitHub Actions builds the web and api images; cmx vm on my laptop runs both tiers on Multipass, Chameleon and AWS](images/architecture.svg)
 
 ```mermaid
 flowchart LR
@@ -83,29 +85,30 @@ flowchart LR
     CI -->|push image| REG[(GitHub Container Registry)]
     subgraph LAPTOP[My laptop]
         DEP[deploy.sh] --> CMX[cmx vm]
-        CL[client.py failover<br/>Locust load test]
+        CL[Browser: web page<br/>client.py failover<br/>Locust load test]
         PROM[Prometheus<br/>alert rules] --> GRAF[Grafana<br/>dashboard]
     end
     CMX -->|start / run / delete| MP[Multipass VM<br/>local]
     CMX -->|start / ip assign / run / delete| CH[Chameleon KVM@TACC VM<br/>OpenStack]
     CMX -->|start / run / delete| AWS[AWS EC2 VM<br/>public cloud]
-    REG -. docker pull .-> MP
+    REG -. docker pull web + api .-> MP
     REG -. docker pull .-> CH
     REG -. docker pull .-> AWS
-    CL -->|HTTP :8000| MP
-    CL -->|HTTP :8000| CH
-    CL -->|HTTP :8000| AWS
-    PROM -. scrape /metrics .-> MP
-    PROM -. scrape /metrics .-> CH
-    PROM -. scrape /metrics .-> AWS
+    CL -->|HTTP :80| MP
+    CL -->|HTTP :80| CH
+    CL -->|HTTP :80| AWS
+    PROM -. scrape /api/metrics .-> MP
+    PROM -. scrape /api/metrics .-> CH
+    PROM -. scrape /api/metrics .-> AWS
 ```
 
 | Component | Technology | Notes |
 | --------- | ---------- | ----- |
-| Inference API | Python, FastAPI, Hugging Face Transformers | Endpoints `GET /health`, `POST /predict`, `POST /filter`, `GET /metrics` |
+| Web frontend (`web` container) | nginx, HTML + JavaScript | Serves the web page and forwards `/api/` to the backend; the only public port (80) |
+| Backend API (`api` container) | Python, FastAPI, Hugging Face Transformers | Endpoints `GET /health`, `POST /predict`, `POST /filter`, `GET /metrics`; port 8000 on the internal Docker network only |
 | Monitoring and alerts | Prometheus, Grafana (Docker on my laptop) | Prometheus collects `/metrics` from all three clouds every 5 seconds and checks the alert rules; Grafana shows one dashboard |
 | Failover client | `client.py` | Sends each request to AWS, then Chameleon, then Multipass, until one answers |
-| Container | Docker, GitHub Container Registry | Image `ghcr.io/shabbir04/inferscale` |
+| Containers | Docker, GitHub Container Registry | Images `ghcr.io/shabbir04/inferscale-web` and `ghcr.io/shabbir04/inferscale-api` |
 | VM management | `cmx vm` (cloudmesh-ai-vm, `dev2` branch) | The only tool used to create, reach and delete VMs |
 | Deployment | `deploy.sh` | Runs the same `cmx vm` steps on each cloud |
 | Load test | Locust | Runs from my laptop against each cloud |
@@ -123,7 +126,7 @@ Free plan credits.
 | **VM size** | 1 vCPU, 2 GB (set in `~/.config/cloudmesh/clouds.yaml`) | `m1.small` (1 vCPU, 2 GB) | `t3.small` (2 vCPU, 2 GB) |
 | **OS image** | Ubuntu 22.04 | CC-Ubuntu22.04 | Ubuntu 22.04 |
 | **How the service is reached** | The VM's local IP | Floating IP | The instance's public IP |
-| **Port 8000** | Open by default | Rule added with `cmx vm security-group` | Rule in the instance's security group |
+| **Port 80 (frontend tier)** | Open by default | Rule added with `cmx vm security-group` | Rule in the instance's security group |
 | **Special step** | None | `cmx vm start` creates a lease; end the lease after `cmx vm delete` | Delete the instance after every session |
 | **Status** | `cmx vm` VM lifecycle tested | `start`, `list`, `ip assign`, `delete` tested (Oct 14) | Account and credentials not set up yet |
 
@@ -133,11 +136,17 @@ Free plan credits.
 cmx vm cloud set chameleon                 # multipass | chameleon | aws
 cmx vm start inferscale                    # Chameleon: also creates a lease (--duration 2h)
 cmx vm list                                # shows the VM and its IP
-cmx vm run inferscale "curl -fsSL https://get.docker.com | sudo sh && sudo docker run -d -p 8000:8000 ghcr.io/shabbir04/inferscale:latest"
-curl http://<ip>:8000/health               # smoke test
-locust -f loadtest.py --headless -u 10 -r 2 -t 60s --host http://<ip>:8000
+cmx vm run inferscale "curl -fsSL https://get.docker.com | sudo sh"
+cmx vm run inferscale "sudo docker network create inferscale && \
+  sudo docker run -d --name api --network inferscale ghcr.io/shabbir04/inferscale-api:latest && \
+  sudo docker run -d --name web --network inferscale -p 80:80 ghcr.io/shabbir04/inferscale-web:latest"
+curl http://<ip>/api/health                # smoke test through the frontend tier
+locust -f loadtest.py --headless -u 10 -r 2 -t 60s --host http://<ip>
 cmx vm delete inferscale                   # Chameleon: then delete the lease
 ```
+
+Only the `web` container publishes a port (`-p 80:80`). The `api` container has no public port; `web`
+reaches it by name (`api:8000`) on the private Docker network `inferscale`.
 
 On Chameleon a VM can also be started without an IP (`cmx vm start inferscale --ip no`) and get one
 later with `cmx vm ip assign inferscale`.
@@ -148,7 +157,7 @@ the clouds in order, so the service keeps answering when one cloud is down:
 ```python
 import requests
 
-CLOUDS = ["http://<aws-ip>:8000", "http://<chameleon-ip>:8000", "http://<multipass-ip>:8000"]
+CLOUDS = ["http://<aws-ip>/api", "http://<chameleon-ip>/api", "http://<multipass-ip>/api"]
 
 def predict(text):
     for url in CLOUDS:
@@ -168,9 +177,9 @@ keep working through Chameleon.
 | ----- | ---- | ------------ |
 | Source | GitHub | One branch per change, pull requests, issues |
 | Test | pytest (GitHub Actions) | Tests `/health` and `/predict` on every push |
-| Build | Docker (GitHub Actions) | Builds the image and pushes it to GitHub Container Registry |
-| Deploy | `deploy.sh` + `cmx vm` | Creates the VM and starts the container on the chosen cloud |
-| Verify | `curl /health`, Locust | Checks the service, then measures latency |
+| Build | Docker (GitHub Actions) | Builds the two images (`inferscale-web`, `inferscale-api`) and pushes them to GitHub Container Registry |
+| Deploy | `deploy.sh` + `cmx vm` | Creates the VM and starts both containers on the chosen cloud |
+| Verify | `curl /api/health`, Locust | Checks the service through the frontend tier, then measures latency |
 | Monitor | Prometheus + Grafana | Shows live requests, errors and response time for all three clouds, and raises an alert when a cloud is down or has too many errors |
 | Clean up | `cmx vm delete` | Removes the VM (and the Chameleon lease) after each session |
 
@@ -178,15 +187,17 @@ The Python environment is a `venv` with `pip`, not conda, which keeps the VMs an
 
 **Live monitoring with alerts.** Prometheus and Grafana run in Docker on my laptop (`docker compose up`).
 `deploy.sh` writes each cloud's IP into `targets.json`, and Prometheus reads the file again when it
-changes. Prometheus collects `/metrics` from every cloud every 5 seconds and checks two alert rules:
+changes. Prometheus collects `/api/metrics` through the frontend tier of every cloud every 5 seconds and
+checks two alert rules:
 
 ```yaml
 # prometheus.yml
 scrape_configs:
   - job_name: inferscale
     scrape_interval: 5s
+    metrics_path: /api/metrics   # nginx forwards it to the backend
     file_sd_configs:
-      - files: [targets.json]    # one entry per cloud, e.g. {"targets": ["<aws-ip>:8000"], "labels": {"cloud": "aws"}}
+      - files: [targets.json]    # one entry per cloud, e.g. {"targets": ["<aws-ip>:80"], "labels": {"cloud": "aws"}}
 rule_files: [alerts.yml]
 ```
 
@@ -207,7 +218,53 @@ groups:
 The Grafana dashboard has one line per cloud for requests per second, errors and p95 response time, and
 a panel that lists the alerts that are firing.
 
-### 5.4 AI / Model Serving
+### 5.4 Frontend Tier
+
+InferScale has two tiers. Each runs in its own container on the same VM:
+
+| | Frontend tier | Backend tier |
+| - | ------------- | ------------ |
+| **Container** | `web`: nginx + one HTML/JavaScript page | `api`: FastAPI + DistilBERT |
+| **Image** | `ghcr.io/shabbir04/inferscale-web` | `ghcr.io/shabbir04/inferscale-api` |
+| **Job** | Shows the web page and forwards every `/api/...` request to the backend | Runs the model and answers `/health`, `/predict`, `/filter`, `/metrics` |
+| **Port** | 80, the only public port | 8000, only on the internal Docker network |
+
+```mermaid
+flowchart LR
+    U[Browser, client.py,<br/>Locust, Prometheus] -->|HTTP :80| WEB
+    subgraph VM[One VM on each cloud]
+        WEB[web container<br/>nginx + web page] -->|"/api/ → api:8000 (internal network)"| API[api container<br/>FastAPI + DistilBERT]
+    end
+```
+
+The page has two parts: type one review and press **Analyze** to see its label and score, or paste
+several reviews and press **Filter** to see only the confident ones with the chosen label. nginx serves
+the page and passes API calls to the backend:
+
+```nginx
+# nginx.conf in the web image
+server {
+    listen 80;
+    location /     { root /usr/share/nginx/html; }   # the web page
+    location /api/ { proxy_pass http://api:8000/; }  # forward to the backend tier
+}
+```
+
+The page calls the backend only through nginx, so the browser never talks to the model container directly:
+
+```javascript
+async function analyze() {
+  const text = document.getElementById("text").value;
+  const r = await fetch("/api/predict", {method: "POST", headers: {"Content-Type": "application/json"},
+                                         body: JSON.stringify({text})});
+  const {label, score} = await r.json();
+  document.getElementById("result").textContent = `${label} (${score.toFixed(2)})`;
+}
+```
+
+The page and the API come from the same address, so no CORS setup is needed.
+
+### 5.5 AI / Model Serving (Backend Tier)
 
 The model is `distilbert/distilbert-base-uncased-finetuned-sst-2-english`. It is small enough to run on a
 CPU and fit in a 2 GB VM. The core of the service:
@@ -243,11 +300,12 @@ def filter_reviews(item: dict):
 `/metrics` comes from the `prometheus-fastapi-instrumentator` library. It counts every request with its
 status code and response time, in the format Prometheus reads.
 
-### 5.5 Security
+### 5.6 Security
 
 - Login to VMs only with SSH keys, no passwords.
 - Cloud credentials stay in `~/.config/` and are never committed to Git.
-- Port 8000 is opened only for testing, and every VM is deleted after each session.
+- Only port 80 (the frontend tier) is open, and only during testing. The backend has no public port: it is
+  reached only through nginx on the internal Docker network. Every VM is deleted after each session.
 - Prometheus and Grafana run only on my laptop, so their web pages are not open to the internet.
 - The test data is public example text, with no personal data.
 
@@ -261,7 +319,7 @@ status code and response time, in the format Prometheus reads.
 | `cmx vm` on two clouds | VM lifecycle on Multipass and Chameleon, including the `cmx vm ip` command | Sep 29 – Oct 14 | Done |
 | Simpler design | Three clouds + `cmx vm` instead of Kubernetes | Oct 14 | Done |
 | Third cloud | AWS account and credentials, first `cmx vm` VM on AWS | Oct 15 – Oct 22 | Next |
-| Service | FastAPI + model, review filter (`/filter`), `/metrics`, Dockerfile, tests | Oct 15 – Oct 29 | Next |
+| Service | Backend (FastAPI + model, `/filter`, `/metrics`), frontend (web page + nginx), Dockerfiles, tests | Oct 15 – Oct 29 | Next |
 | CI | GitHub Actions: test, build, push image | Oct 29 – Nov 5 | Planned |
 | Deploy script | `deploy.sh` for all three clouds | Nov 5 – Nov 12 | Planned |
 | Monitoring + failover | Prometheus + Grafana (dashboard, alert rules), `client.py` | Nov 12 – Nov 19 | Planned |
@@ -316,7 +374,7 @@ status code and response time, in the format Prometheus reads.
 
 | Deliverable | Format |
 | ----------- | ------ |
-| Inference service, Dockerfile and tests | Code in this repository |
+| Backend (FastAPI + model) and frontend (web page + nginx), their Dockerfiles and tests | Code in this repository |
 | GitHub Actions workflow | `.github/workflows/` |
 | `deploy.sh` built on `cmx vm` | Script in this repository |
 | Review filter (`/filter`) and `/metrics` | Part of the inference service |
@@ -337,6 +395,7 @@ status code and response time, in the format Prometheus reads.
 - Amazon EC2 documentation: https://docs.aws.amazon.com/ec2/
 - AWS Free Tier: https://aws.amazon.com/free/
 - FastAPI: https://fastapi.tiangolo.com
+- nginx: https://nginx.org/en/docs/
 - DistilBERT SST-2 model: https://huggingface.co/distilbert/distilbert-base-uncased-finetuned-sst-2-english
 - Locust: https://locust.io
 - Prometheus: https://prometheus.io/docs/
