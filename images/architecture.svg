@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" width="1200" height="600" font-family="Helvetica, Arial, sans-serif" role="img" aria-labelledby="title desc">
   <title id="title">InferScale architecture</title>
-  <desc id="desc">GitHub Actions tests and builds one Docker image and pushes it to the GitHub Container Registry. On my laptop, deploy.sh drives cmx vm, which starts, runs and deletes VMs on Multipass, Chameleon KVM@TACC and AWS EC2. Each VM pulls the same image. client.py (failover), monitor.py and Locust reach the service over HTTP on port 8000.</desc>
+  <desc id="desc">GitHub Actions tests and builds one Docker image and pushes it to the GitHub Container Registry. On my laptop, deploy.sh drives cmx vm, which starts, runs and deletes VMs on Multipass, Chameleon KVM@TACC and AWS EC2. Each VM pulls the same image. client.py (failover) and Locust reach the service over HTTP on port 8000, and Prometheus collects /metrics from every VM; Grafana shows the dashboard and alerts.</desc>
   <defs>
     <marker id="arrowNavy" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="#14213D"/>
@@ -55,8 +55,8 @@
   <text x="390" y="266" font-size="15" fill="#14213D" font-family="Menlo, Consolas, monospace">client.py</text>
   <text x="482" y="266" font-size="14" fill="#4A5568">multi-cloud failover</text>
   <rect x="372" y="298" width="326" height="52" rx="8" fill="#FFFFFF" stroke="#C7CED8" stroke-width="1.5"/>
-  <text x="390" y="330" font-size="15" fill="#14213D" font-family="Menlo, Consolas, monospace">monitor.py</text>
-  <text x="492" y="330" font-size="14" fill="#4A5568">live monitoring</text>
+  <text x="390" y="330" font-size="15" font-weight="bold" fill="#14213D">Prometheus + Grafana</text>
+  <text x="560" y="330" font-size="14" fill="#4A5568">dashboard, alerts</text>
   <rect x="372" y="362" width="326" height="52" rx="8" fill="#FFFFFF" stroke="#C7CED8" stroke-width="1.5"/>
   <text x="390" y="394" font-size="15" fill="#14213D" font-family="Menlo, Consolas, monospace">Locust</text>
   <text x="458" y="394" font-size="14" fill="#4A5568">load test</text>
@@ -96,6 +96,7 @@
   <line x1="710" y1="324" x2="796" y2="324" stroke="#2563EB" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
   <text x="760" y="314" font-size="13" font-weight="bold" fill="#2563EB" text-anchor="middle">HTTP</text>
   <text x="760" y="344" font-size="13" fill="#2563EB" text-anchor="middle">:8000</text>
+  <text x="760" y="362" font-size="12" fill="#2563EB" text-anchor="middle">/metrics</text>
 
   <!-- registry to VMs: docker pull -->
   <path d="M165,434 L165,540 L980,540 L980,484" fill="none" stroke="#6B7280" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#arrowGray)"/>

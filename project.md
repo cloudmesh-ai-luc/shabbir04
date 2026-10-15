@@ -23,8 +23,8 @@ clouds: **Multipass** on my laptop (local), **Chameleon KVM@TACC** (OpenStack) a
 cloud). All VMs are created, reached and deleted with one tool, **`cmx vm`** from the class project
 [cloudmesh-ai-vm](https://github.com/cloudmesh-ai/cloudmesh-ai-vm), which I also contribute to. One
 deploy script runs the same steps on every cloud, and a load test measures how each cloud performs.
-On top of plain predictions, InferScale has three features: an **AI review filter**, **live monitoring**
-of all three clouds, and **multi-cloud failover**.
+On top of plain predictions, InferScale has three features: an **AI review filter**, **live monitoring
+with alerts** of all three clouds (Prometheus and Grafana), and **multi-cloud failover**.
 
 **Result.** A repeatable, automated workflow and a side-by-side comparison of deployment time, response
 time and cost on the three clouds. Where `cmx vm` falls short for this workflow, I fix it in small pull
@@ -37,7 +37,7 @@ requests (for example the `cmx vm ip` command).
 | Area | How InferScale addresses it |
 | ---- | --------------------------- |
 | **Cloud Computing** | Runs the same service as VMs (IaaS) on three different kinds of cloud: a local hypervisor, an OpenStack research cloud and a public cloud. Uses each cloud's networking (local IP, floating IP, public IP), security groups, Chameleon leases, and compares cost. `cmx vm` hides the differences behind one command line. **Feature: multi-cloud failover.** When one cloud is down, requests go to the next cloud. |
-| **DevOps** | GitHub flow (branches, pull requests, issues), automated tests and Docker builds with GitHub Actions, a container registry, one deploy script for all clouds, a smoke test after every deployment, and clean-up so nothing keeps running. **Feature: live monitoring.** Every VM reports its requests, errors and response time, and one screen shows all three clouds. |
+| **DevOps** | GitHub flow (branches, pull requests, issues), automated tests and Docker builds with GitHub Actions, a container registry, one deploy script for all clouds, a smoke test after every deployment, and clean-up so nothing keeps running. **Feature: live monitoring with alerts.** Every VM reports its requests, errors and response time at `/metrics`. Prometheus collects them from all three clouds, Grafana shows them on one dashboard, and an alert fires when a cloud stops answering or has too many errors. |
 | **AI** | The workload is an AI model: DistilBERT sentiment analysis served for inference on CPU. The project measures how fast that model answers on each cloud. **Feature: review filter.** The model returns only the reviews with a chosen label (for example, negative) that it is confident about. |
 
 ---
@@ -52,7 +52,7 @@ requests (for example the `cmx vm ip` command).
 | 4 | Measure and compare the clouds | A results table with deploy time, latency (p50/p95), success rate and cost per cloud |
 | 5 | Improve `cmx vm` where the project needs it | Small, reviewed pull requests to cloudmesh-ai-vm |
 | 6 | AI review filter | `/filter` returns only the reviews with the chosen label and a score at or above the threshold |
-| 7 | Live monitoring | `monitor.py` shows requests, errors and average response time for all three clouds, refreshed every 5 seconds |
+| 7 | Live monitoring with alerts | One Grafana dashboard shows requests, errors and response time for all three clouds, updated every 5 seconds; an alert fires when a cloud stops answering |
 | 8 | Multi-cloud failover | With one cloud's VM deleted during a test run, requests still succeed through the other clouds |
 
 ---
@@ -64,10 +64,10 @@ requests (for example the `cmx vm ip` command).
 | Inference service (FastAPI + DistilBERT) and its Docker image | Training or fine-tuning models |
 | Three clouds: Multipass, Chameleon KVM@TACC, AWS EC2 | Kubernetes and autoscaling (dropped to keep the project simple) |
 | Deploy script built on `cmx vm` | GPUs |
-| CI with GitHub Actions | High availability and production monitoring |
+| CI with GitHub Actions | High availability and 24/7 monitoring (monitoring runs only during my sessions) |
 | Load test and comparison of the three clouds | Other public clouds (Azure, GCP) |
 | Small fixes to `cmx vm` | A load balancer in front of the clouds (failover is done in the client) |
-| Three features: review filter, live monitoring, multi-cloud failover | Monitoring dashboards such as Prometheus/Grafana (a simple terminal monitor is enough) |
+| Three features: review filter, live monitoring with alerts, multi-cloud failover | Sending alerts by email or chat (alerts are shown in Prometheus and Grafana) |
 
 ---
 
@@ -83,7 +83,8 @@ flowchart LR
     CI -->|push image| REG[(GitHub Container Registry)]
     subgraph LAPTOP[My laptop]
         DEP[deploy.sh] --> CMX[cmx vm]
-        CL[client.py failover<br/>monitor.py<br/>Locust load test]
+        CL[client.py failover<br/>Locust load test]
+        PROM[Prometheus<br/>alert rules] --> GRAF[Grafana<br/>dashboard]
     end
     CMX -->|start / run / delete| MP[Multipass VM<br/>local]
     CMX -->|start / ip assign / run / delete| CH[Chameleon KVM@TACC VM<br/>OpenStack]
@@ -94,12 +95,15 @@ flowchart LR
     CL -->|HTTP :8000| MP
     CL -->|HTTP :8000| CH
     CL -->|HTTP :8000| AWS
+    PROM -. scrape /metrics .-> MP
+    PROM -. scrape /metrics .-> CH
+    PROM -. scrape /metrics .-> AWS
 ```
 
 | Component | Technology | Notes |
 | --------- | ---------- | ----- |
-| Inference API | Python, FastAPI, Hugging Face Transformers | Endpoints `GET /health`, `POST /predict`, `POST /filter`, `GET /stats` |
-| Monitoring | `monitor.py` | Reads `/stats` from all three clouds every 5 seconds and prints one table |
+| Inference API | Python, FastAPI, Hugging Face Transformers | Endpoints `GET /health`, `POST /predict`, `POST /filter`, `GET /metrics` |
+| Monitoring and alerts | Prometheus, Grafana (Docker on my laptop) | Prometheus collects `/metrics` from all three clouds every 5 seconds and checks the alert rules; Grafana shows one dashboard |
 | Failover client | `client.py` | Sends each request to AWS, then Chameleon, then Multipass, until one answers |
 | Container | Docker, GitHub Container Registry | Image `ghcr.io/shabbir04/inferscale` |
 | VM management | `cmx vm` (cloudmesh-ai-vm, `dev2` branch) | The only tool used to create, reach and delete VMs |
@@ -167,10 +171,41 @@ keep working through Chameleon.
 | Build | Docker (GitHub Actions) | Builds the image and pushes it to GitHub Container Registry |
 | Deploy | `deploy.sh` + `cmx vm` | Creates the VM and starts the container on the chosen cloud |
 | Verify | `curl /health`, Locust | Checks the service, then measures latency |
-| Monitor | `/stats` + `monitor.py` | Shows live requests, errors and average response time for all three clouds |
+| Monitor | Prometheus + Grafana | Shows live requests, errors and response time for all three clouds, and raises an alert when a cloud is down or has too many errors |
 | Clean up | `cmx vm delete` | Removes the VM (and the Chameleon lease) after each session |
 
 The Python environment is a `venv` with `pip`, not conda, which keeps the VMs and containers clean.
+
+**Live monitoring with alerts.** Prometheus and Grafana run in Docker on my laptop (`docker compose up`).
+`deploy.sh` writes each cloud's IP into `targets.json`, and Prometheus reads the file again when it
+changes. Prometheus collects `/metrics` from every cloud every 5 seconds and checks two alert rules:
+
+```yaml
+# prometheus.yml
+scrape_configs:
+  - job_name: inferscale
+    scrape_interval: 5s
+    file_sd_configs:
+      - files: [targets.json]    # one entry per cloud, e.g. {"targets": ["<aws-ip>:8000"], "labels": {"cloud": "aws"}}
+rule_files: [alerts.yml]
+```
+
+```yaml
+# alerts.yml
+groups:
+  - name: inferscale
+    rules:
+      - alert: CloudDown          # a cloud does not answer for 1 minute
+        expr: up{job="inferscale"} == 0
+        for: 1m
+      - alert: HighErrorRate      # more than 5 % of requests fail for 1 minute
+        expr: sum by (cloud) (rate(http_requests_total{status="5xx"}[1m]))
+              / sum by (cloud) (rate(http_requests_total[1m])) > 0.05
+        for: 1m
+```
+
+The Grafana dashboard has one line per cloud for requests per second, errors and p95 response time, and
+a panel that lists the alerts that are firing.
 
 ### 5.4 AI / Model Serving
 
@@ -179,9 +214,11 @@ CPU and fit in a 2 GB VM. The core of the service:
 
 ```python
 from fastapi import FastAPI
+from prometheus_fastapi_instrumentator import Instrumentator
 from transformers import pipeline
 
 app = FastAPI()
+Instrumentator().instrument(app).expose(app)   # adds GET /metrics
 classifier = pipeline("sentiment-analysis",
                       model="distilbert/distilbert-base-uncased-finetuned-sst-2-english")
 
@@ -203,14 +240,15 @@ def filter_reviews(item: dict):
             if r["label"] == label and r["score"] >= min_score]
 ```
 
-`/stats` returns the number of requests, the number of errors and the average response time. A small
-FastAPI middleware counts them for every request, and `monitor.py` reads them.
+`/metrics` comes from the `prometheus-fastapi-instrumentator` library. It counts every request with its
+status code and response time, in the format Prometheus reads.
 
 ### 5.5 Security
 
 - Login to VMs only with SSH keys, no passwords.
 - Cloud credentials stay in `~/.config/` and are never committed to Git.
 - Port 8000 is opened only for testing, and every VM is deleted after each session.
+- Prometheus and Grafana run only on my laptop, so their web pages are not open to the internet.
 - The test data is public example text, with no personal data.
 
 ---
@@ -223,10 +261,10 @@ FastAPI middleware counts them for every request, and `monitor.py` reads them.
 | `cmx vm` on two clouds | VM lifecycle on Multipass and Chameleon, including the `cmx vm ip` command | Sep 29 – Oct 14 | Done |
 | Simpler design | Three clouds + `cmx vm` instead of Kubernetes | Oct 14 | Done |
 | Third cloud | AWS account and credentials, first `cmx vm` VM on AWS | Oct 15 – Oct 22 | Next |
-| Service | FastAPI + model, review filter (`/filter`), `/stats`, Dockerfile, tests | Oct 15 – Oct 29 | Next |
+| Service | FastAPI + model, review filter (`/filter`), `/metrics`, Dockerfile, tests | Oct 15 – Oct 29 | Next |
 | CI | GitHub Actions: test, build, push image | Oct 29 – Nov 5 | Planned |
 | Deploy script | `deploy.sh` for all three clouds | Nov 5 – Nov 12 | Planned |
-| Monitoring + failover | `monitor.py`, `client.py` | Nov 12 – Nov 19 | Planned |
+| Monitoring + failover | Prometheus + Grafana (dashboard, alert rules), `client.py` | Nov 12 – Nov 19 | Planned |
 | Measurements | Load tests and the failover test on the three clouds, results table | Nov 19 – Dec 3 | Planned |
 | Final | Report and presentation | Dec 3 – Dec 10 | Planned |
 
@@ -240,6 +278,7 @@ FastAPI middleware counts them for every request, and `monitor.py` reads them.
 | Chameleon KVM@TACC, `m1.small` | 1–2 hour leases per session (project CH-817419) | Class allocation, no money |
 | AWS EC2 `t3.small` | Short sessions, deleted afterwards | About $0.02 per hour, covered by AWS Free plan credits |
 | GitHub Actions and Container Registry | CI and image storage | $0 within the free limits |
+| Prometheus and Grafana (Docker on my Mac) | Monitoring and alerts | $0 (open source) |
 | **Total** | | **$0 out of pocket** |
 
 ---
@@ -267,7 +306,8 @@ FastAPI middleware counts them for every request, and `monitor.py` reads them.
 | Cost per session | Provider pricing and allocation used | Under $1 per AWS session |
 | Same script on all three clouds | Run `deploy.sh` with each cloud | Works without changes to the steps |
 | Review filter accuracy | `/filter` on 20 reviews I label by hand | At least 18 of 20 correct |
-| Live monitoring | `monitor.py` during a load test | All three clouds shown, updated every 5 seconds |
+| Live monitoring | Grafana dashboard during a load test | All three clouds shown, updated every 5 seconds |
+| Alerts | Delete one cloud's VM during the failover test | The `CloudDown` alert fires within 2 minutes |
 | Failover | 200 requests through `client.py`, AWS VM deleted halfway | At least 99 % succeed |
 
 ---
@@ -279,8 +319,8 @@ FastAPI middleware counts them for every request, and `monitor.py` reads them.
 | Inference service, Dockerfile and tests | Code in this repository |
 | GitHub Actions workflow | `.github/workflows/` |
 | `deploy.sh` built on `cmx vm` | Script in this repository |
-| Review filter (`/filter`) and `/stats` | Part of the inference service |
-| `monitor.py` (live monitoring) | Script in this repository |
+| Review filter (`/filter`) and `/metrics` | Part of the inference service |
+| Prometheus and Grafana setup (`docker-compose.yml`, `prometheus.yml`, `alerts.yml`, dashboard) | Files in this repository, plus dashboard screenshots |
 | `client.py` (multi-cloud failover) | Script in this repository |
 | Results table and chart for the three clouds | Markdown in this repository |
 | Contributions to `cmx vm` | Pull requests to cloudmesh-ai-vm |
@@ -303,7 +343,7 @@ FastAPI middleware counts them for every request, and `monitor.py` reads them.
   differences instead of treating them as a perfectly fair comparison.
 - **Failover is done in the client.** It is the simplest way. A load balancer in front of the clouds would
   be more realistic, but it needs another VM. The cloud IPs also change with every deployment, so
-  `deploy.sh` has to update the client's config file each time.
+  `deploy.sh` has to update the client's config file and Prometheus's `targets.json` each time.
 
 ---
 
@@ -317,3 +357,6 @@ FastAPI middleware counts them for every request, and `monitor.py` reads them.
 - FastAPI: https://fastapi.tiangolo.com
 - DistilBERT SST-2 model: https://huggingface.co/distilbert/distilbert-base-uncased-finetuned-sst-2-english
 - Locust: https://locust.io
+- Prometheus: https://prometheus.io/docs/
+- Grafana: https://grafana.com/docs/grafana/latest/
+- prometheus-fastapi-instrumentator: https://github.com/trallnag/prometheus-fastapi-instrumentator
