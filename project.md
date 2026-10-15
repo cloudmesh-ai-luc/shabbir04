@@ -328,23 +328,6 @@ status code and response time, in the format Prometheus reads.
 
 ---
 
-## 11. Issues
-
-- **AWS is not set up yet.** I still need the account and credentials, and I have not tested whether the
-  `aws` provider in `cmx vm` supports everything the deploy script needs (public IP, security group rule).
-  If not, I open the port in the AWS console and report the gap.
-- **Which Chameleon code to use.** `cmx vm` has two versions for Chameleon: the `dev2` branch and the
-  `feature/chameleon-native-chi` branch. I need to know which one the project should build on.
-- **Chameleon clean-up gaps.** `cmx vm delete` does not end the lease, and releasing a floating IP fails
-  because python-chi uses a compute call that KVM@TACC no longer supports, so IPs stay reserved.
-- **Is 2 GB enough** for DistilBERT plus Docker? If not, I add swap or use a smaller model.
-- **The VMs are not identical** (`t3.small` has 2 vCPUs, `m1.small` has 1), so the results note the
-  differences instead of treating them as a perfectly fair comparison.
-- **Failover is done in the client.** It is the simplest way. A load balancer in front of the clouds would
-  be more realistic, but it needs another VM. The cloud IPs also change with every deployment, so
-  `deploy.sh` has to update the client's config file and Prometheus's `targets.json` each time.
-
----
 
 ## 12. References
 
