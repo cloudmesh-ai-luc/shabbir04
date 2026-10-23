@@ -1,5 +1,21 @@
 site_name: shabbir04 Documentation
-theme: readthedocs
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
 
 nav:
   - Home: index.md
+  - Project: project/project.md
+
