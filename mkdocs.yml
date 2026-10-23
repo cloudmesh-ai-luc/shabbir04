@@ -15,6 +15,9 @@ theme:
     - search.suggest
     - search.highlight
 
+extra_css:
+  - stylesheets/extra.css
+
 nav:
   - Home: index.md
   - Project: project/project.md
