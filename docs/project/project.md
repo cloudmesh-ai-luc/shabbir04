@@ -7,6 +7,7 @@
 | **Contact**      | <kahmed5@luc.edu>                                                |
 | **Instructor**   | Gregor von Laszewski                                             |
 | **Repository**   | https://github.com/cloudmesh-ai-luc/shabbir04                    |
+| **Presentation** | [InferScale-Presentation.pdf](InferScale-Presentation.pdf) (12 slides) |
 | **Date**         | *Sep. 22, 2026*                                                  |
 
 ---
