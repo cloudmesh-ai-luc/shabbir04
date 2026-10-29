@@ -113,6 +113,11 @@ flowchart LR
 | Deployment | `deploy.sh` | Runs the same `cmx vm` steps on each cloud |
 | Load test | Locust | Runs from my laptop against each cloud |
 
+**Stateless by design.** The service stores nothing: a request goes in and the model answers. There is no
+database, so any cloud can answer any request (failover needs no data sync) and every VM can be deleted
+after a session. The only data I keep is on my laptop and in this repository: Prometheus metrics in a
+Docker volume, the Grafana dashboard as a JSON file, and the load-test results as CSV files.
+
 ### 5.2 Three Clouds and cmx vm
 
 **Why these three.** Multipass is free and fast for development. Chameleon KVM@TACC is the class
@@ -130,7 +135,7 @@ Free plan credits.
 | **Special step** | None | `cmx vm start` creates a lease; end the lease after `cmx vm delete` | Delete the instance after every session |
 | **Status** | `cmx vm` VM lifecycle tested | `start`, `list`, `ip assign`, `delete` tested (Oct 14) | Account and credentials not set up yet |
 
-**The steps `deploy.sh` runs on every cloud:**
+**The steps `deploy.sh` runs on every cloud** (simplified; section 5.7 adds the error handling)**:**
 
 ```bash
 cmx vm cloud set chameleon                 # multipass | chameleon | aws
@@ -151,6 +156,10 @@ reaches it by name (`api:8000`) on the private Docker network `inferscale`.
 On Chameleon a VM can also be started without an IP (`cmx vm start inferscale --ip no`) and get one
 later with `cmx vm ip assign inferscale`.
 
+**Clean-up with `destroy.sh <cloud>`.** One script undoes a deployment: it runs `cmx vm delete inferscale`,
+ends the lease on Chameleon, and removes the cloud's IP from `targets.json` and from the client's config
+file. Prometheus then does not raise a false `CloudDown` alert, and failover does not try a deleted VM.
+
 **Multi-cloud failover.** `deploy.sh` writes each cloud's IP into a small config file. `client.py` tries
 the clouds in order, so the service keeps answering when one cloud is down:
 
@@ -162,7 +171,9 @@ CLOUDS = ["http://<aws-ip>/api", "http://<chameleon-ip>/api", "http://<multipass
 def predict(text):
     for url in CLOUDS:
         try:
-            return requests.post(f"{url}/predict", json={"text": text}, timeout=3).json()
+            r = requests.post(f"{url}/predict", json={"text": text}, timeout=3)
+            r.raise_for_status()   # an HTTP error, e.g. a 502 from nginx, also counts as a failure
+            return r.json()
         except requests.RequestException:
             continue  # this cloud is down, try the next one
     raise RuntimeError("all clouds are down")
@@ -184,6 +195,12 @@ keep working through Chameleon.
 | Clean up | `cmx vm delete` | Removes the VM (and the Chameleon lease) after each session |
 
 The Python environment is a `venv` with `pip`, not conda, which keeps the VMs and containers clean.
+
+**Small, traceable images.** The `api` image installs the CPU-only build of PyTorch and downloads the model
+when the image is built. A VM then pulls an image of about 1–2 GB (PyTorch with GPU libraries would be
+several GB, too big for an 8 GB disk) and does not need Hugging Face at start-up. Each image is tagged with
+the Git commit (for example `inferscale-api:3f9c2ab`) as well as `latest`, so every result can be traced to
+the code that produced it. The packages are public, so the VMs pull them without a login.
 
 **Live monitoring with alerts.** Prometheus and Grafana run in Docker on my laptop (`docker compose up`).
 `deploy.sh` writes each cloud's IP into `targets.json`, and Prometheus reads the file again when it
@@ -271,6 +288,7 @@ CPU and fit in a 2 GB VM. The core of the service:
 
 ```python
 from fastapi import FastAPI
+from pydantic import BaseModel, Field
 from prometheus_fastapi_instrumentator import Instrumentator
 from transformers import pipeline
 
@@ -279,23 +297,32 @@ Instrumentator().instrument(app).expose(app)   # adds GET /metrics
 classifier = pipeline("sentiment-analysis",
                       model="distilbert/distilbert-base-uncased-finetuned-sst-2-english")
 
+class Review(BaseModel):
+    text: str = Field(min_length=1, max_length=5000)
+
+class Reviews(BaseModel):
+    texts: list[str] = Field(min_length=1, max_length=100)
+    label: str = "NEGATIVE"
+    min_score: float = Field(0.9, ge=0, le=1)
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
 
 @app.post("/predict")
-def predict(item: dict):
-    return classifier(item["text"])[0]   # e.g. {"label": "POSITIVE", "score": 0.99}
+def predict(item: Review):
+    return classifier(item.text, truncation=True)[0]   # e.g. {"label": "POSITIVE", "score": 0.99}
 
 @app.post("/filter")
-def filter_reviews(item: dict):
-    # e.g. {"texts": [...], "label": "NEGATIVE", "min_score": 0.9} -> only the confident negative reviews
-    label = item.get("label", "NEGATIVE")
-    min_score = item.get("min_score", 0.9)
-    results = classifier(item["texts"])
-    return [{"text": t, **r} for t, r in zip(item["texts"], results)
-            if r["label"] == label and r["score"] >= min_score]
+def filter_reviews(item: Reviews):
+    # only the confident reviews with the chosen label, e.g. the confident negative ones
+    results = classifier(item.texts, truncation=True)
+    return [{"text": t, **r} for t, r in zip(item.texts, results)
+            if r["label"] == item.label and r["score"] >= item.min_score]
 ```
+
+The Pydantic models check every request, so bad input gets a clear `422` error instead of crashing the
+service. `truncation=True` cuts texts that are longer than the model's limit of 512 tokens.
 
 `/metrics` comes from the `prometheus-fastapi-instrumentator` library. It counts every request with its
 status code and response time, in the format Prometheus reads.
@@ -308,6 +335,29 @@ status code and response time, in the format Prometheus reads.
   reached only through nginx on the internal Docker network. Every VM is deleted after each session.
 - Prometheus and Grafana run only on my laptop, so their web pages are not open to the internet.
 - The test data is public example text, with no personal data.
+
+### 5.7 Error Handling and Readiness Checks
+
+| Level | What can go wrong | How it is handled |
+| ----- | ----------------- | ----------------- |
+| API | Missing or wrong input, a text that is too long | Pydantic returns a clear `422` error; `truncation=True` handles long texts |
+| Containers | A container crashes | Both run with `--restart unless-stopped`; `web` is restarted after `api` so nginx finds the new address |
+| `deploy.sh` | A `cmx vm` step fails (for example "No valid host" on Chameleon) | `set -euo pipefail` stops the script at the first error |
+| Smoke test | The model needs 20–60 seconds to load | `curl -f` retries `/api/health` every 10 seconds for up to 5 minutes |
+| Client | A cloud is down or returns an HTTP error | `client.py` fails over to the next cloud (`raise_for_status()`) |
+| Operation | A cloud stops answering or many requests fail | The `CloudDown` and `HighErrorRate` alerts fire |
+
+**Before the first full deployment** I check the parts that everything else depends on:
+
+- [ ] `cmx vm run` works on each cloud (for example `cmx vm run inferscale "uname -a"`). So far only
+      `start`, `list`, `ip assign` and `delete` are tested.
+- [ ] A small test image goes the whole way: GitHub Actions → GitHub Container Registry → `docker pull` on a
+      VM. The workflow's built-in token can only push under the repository owner (`cloudmesh-ai-luc`), so
+      the images go there or are pushed with a personal token stored as a GitHub secret.
+- [ ] The VM disks are big enough for the image (AWS gives 8 GB and Multipass 5 GB by default).
+- [ ] Prometheus in Docker on my laptop can reach the Multipass VM's local IP.
+- [ ] The VM has a unique name in the shared Chameleon project (for example `inferscale-shabbir04`), so a
+      delete can never pick another student's VM.
 
 ---
 
@@ -359,7 +409,7 @@ status code and response time, in the format Prometheus reads.
 | Metric | How it is measured | Target |
 | ------ | ------------------ | ------ |
 | Deploy time (`cmx vm start` → first good `/predict`) | Timer in `deploy.sh` | Under 15 minutes on each cloud |
-| Latency p50 / p95 | Locust, 60 s, 10 users | Reported per cloud |
+| Latency p50 / p95 | Locust, 60 s, 10 users (end to end), and Prometheus (time on the server only) | Reported per cloud |
 | Success rate | Locust | At least 99 % |
 | Cost per session | Provider pricing and allocation used | Under $1 per AWS session |
 | Same script on all three clouds | Run `deploy.sh` with each cloud | Works without changes to the steps |
@@ -367,6 +417,10 @@ status code and response time, in the format Prometheus reads.
 | Live monitoring | Grafana dashboard during a load test | All three clouds shown, updated every 5 seconds |
 | Alerts | Delete one cloud's VM during the failover test | The `CloudDown` alert fires within 2 minutes |
 | Failover | 200 requests through `client.py`, AWS VM deleted halfway | At least 99 % succeed |
+
+Each load test runs three times per cloud. The results table reports the median of the three runs, the
+image tag (Git commit) and the VM's CPU. The server-side time shows how much of the latency is the
+network between my laptop and the cloud, which keeps the comparison fair.
 
 ---
 
@@ -376,7 +430,7 @@ status code and response time, in the format Prometheus reads.
 | ----------- | ------ |
 | Backend (FastAPI + model) and frontend (web page + nginx), their Dockerfiles and tests | Code in this repository |
 | GitHub Actions workflow | `.github/workflows/` |
-| `deploy.sh` built on `cmx vm` | Script in this repository |
+| `deploy.sh` and `destroy.sh` built on `cmx vm` | Scripts in this repository |
 | Review filter (`/filter`) and `/metrics` | Part of the inference service |
 | Prometheus and Grafana setup (`docker-compose.yml`, `prometheus.yml`, `alerts.yml`, dashboard) | Files in this repository, plus dashboard screenshots |
 | `client.py` (multi-cloud failover) | Script in this repository |
