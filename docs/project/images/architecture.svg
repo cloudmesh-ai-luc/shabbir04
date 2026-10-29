@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" width="1200" height="600" font-family="Helvetica, Arial, sans-serif" role="img" aria-labelledby="title desc">
   <title id="title">InferScale architecture</title>
-  <desc id="desc">GitHub Actions tests the code, builds two Docker images (web and api) and pushes them to the GitHub Container Registry. On my laptop, deploy.sh drives cmx vm, which starts, runs and deletes VMs on Multipass, Chameleon KVM@TACC and AWS EC2. Each VM runs two tiers: a web container (nginx, port 80, the only public port) that forwards /api to an api container (FastAPI + DistilBERT). The browser, client.py (failover), Locust and Prometheus reach each cloud over HTTP on port 80; Grafana shows the dashboard and alerts.</desc>
+  <desc id="desc">GitHub Actions tests the code, builds two Docker images (web and api) and pushes them to the GitHub Container Registry. On my laptop, deploy.sh drives cmx vm, which starts, runs and deletes VMs on Multipass, Chameleon KVM@TACC and AWS EC2. Each VM runs two tiers: a web container (nginx, HTTPS on port 443 with a login, the only public port) that forwards /api to an api container (FastAPI + DistilBERT). The browser, client.py (failover), Locust and Prometheus reach each cloud over HTTPS on port 443 with their own accounts; Grafana shows the dashboard and alerts.</desc>
   <defs>
     <marker id="arrowNavy" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="#14213D"/>
@@ -75,19 +75,19 @@
   <text x="840" y="140" font-size="16" font-weight="bold" fill="#14213D">Multipass VM</text>
   <text x="840" y="161" font-size="13" fill="#2563EB">local cloud</text>
   <text x="840" y="182" font-size="13" fill="#4A5568">cmx vm: start · run · delete</text>
-  <text x="840" y="203" font-size="13" fill="#4A5568">web (nginx, :80) → api (FastAPI + model)</text>
+  <text x="840" y="203" font-size="13" fill="#4A5568">web (nginx, :443) → api (FastAPI + model)</text>
 
   <rect x="822" y="232" width="316" height="106" rx="10" fill="#FFFFFF" stroke="#C7CED8" stroke-width="1.5"/>
   <text x="840" y="258" font-size="16" font-weight="bold" fill="#14213D">Chameleon KVM@TACC VM</text>
   <text x="840" y="279" font-size="13" fill="#2563EB">OpenStack cloud</text>
   <text x="840" y="300" font-size="13" fill="#4A5568">cmx vm: start · ip assign · run · delete</text>
-  <text x="840" y="321" font-size="13" fill="#4A5568">web (nginx, :80) → api (FastAPI + model)</text>
+  <text x="840" y="321" font-size="13" fill="#4A5568">web (nginx, :443) → api (FastAPI + model)</text>
 
   <rect x="822" y="350" width="316" height="106" rx="10" fill="#FFFFFF" stroke="#C7CED8" stroke-width="1.5"/>
   <text x="840" y="376" font-size="16" font-weight="bold" fill="#14213D">AWS EC2 VM</text>
   <text x="840" y="397" font-size="13" fill="#2563EB">public cloud</text>
   <text x="840" y="418" font-size="13" fill="#4A5568">cmx vm: start · run · delete</text>
-  <text x="840" y="439" font-size="13" fill="#4A5568">web (nginx, :80) → api (FastAPI + model)</text>
+  <text x="840" y="439" font-size="13" fill="#4A5568">web (nginx, :443) → api (FastAPI + model)</text>
 
   <!-- ===== Edges between columns ===== -->
   <!-- cmx vm manages the VMs -->
@@ -98,8 +98,8 @@
   <!-- all three clients reach the service -->
   <path d="M698,254 L710,254 M698,306 L710,306 M698,358 L710,358 M698,410 L710,410 M710,252.8 L710,411.2" fill="none" stroke="#2563EB" stroke-width="2.5"/>
   <line x1="710" y1="332" x2="796" y2="332" stroke="#2563EB" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
-  <text x="757" y="322" font-size="13" font-weight="bold" fill="#2563EB" text-anchor="middle">HTTP</text>
-  <text x="757" y="352" font-size="13" fill="#2563EB" text-anchor="middle">:80</text>
+  <text x="757" y="322" font-size="13" font-weight="bold" fill="#2563EB" text-anchor="middle">HTTPS</text>
+  <text x="757" y="352" font-size="13" fill="#2563EB" text-anchor="middle">:443 + login</text>
 
   <!-- registry to VMs: docker pull -->
   <path d="M165,434 L165,540 L980,540 L980,484" fill="none" stroke="#6B7280" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#arrowGray)"/>
