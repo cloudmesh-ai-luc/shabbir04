@@ -1,0 +1,2353 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../..">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Project - shabbir04 Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#inferscale-one-ml-inference-service-on-three-clouds-with-cmx-vm" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="shabbir04 Documentation" class="md-header__button md-logo" aria-label="shabbir04 Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            shabbir04 Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Project
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_1">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Project
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="shabbir04 Documentation" class="md-nav__button md-logo" aria-label="shabbir04 Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    shabbir04 Documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-executive-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Executive Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-cloud-computing-devops-and-ai" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Cloud Computing, DevOps, and AI
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-requirements-objectives-success-criteria" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Requirements, Objectives &amp; Success Criteria
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Requirements, Objectives &amp; Success Criteria">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-functional-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Functional Requirements
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-non-functional-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Non-Functional Requirements
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-objectives-success-criteria" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Objectives &amp; Success Criteria
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Scope
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-technical-approach" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Technical Approach
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Technical Approach">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-three-clouds-and-cmx-vm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 Three Clouds and cmx vm
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-devops-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 DevOps Pipeline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-the-three-tiers-and-the-web-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 The Three Tiers and the Web Page
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#55-ai-model-serving-backend-tier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5 AI / Model Serving (Backend Tier)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#56-security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.6 Security
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#57-error-handling-and-readiness-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.7 Error Handling and Readiness Checks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#58-api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8 API Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#59-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.9 Testing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-project-plan-timeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Project Plan &amp; Timeline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-resources-budget" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Resources &amp; Budget
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-risk-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Risk Management
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-evaluation-success-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Evaluation &amp; Success Metrics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-deliverables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Deliverables
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Issues
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-executive-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Executive Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-cloud-computing-devops-and-ai" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Cloud Computing, DevOps, and AI
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-requirements-objectives-success-criteria" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Requirements, Objectives &amp; Success Criteria
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Requirements, Objectives &amp; Success Criteria">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-functional-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Functional Requirements
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-non-functional-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Non-Functional Requirements
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-objectives-success-criteria" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Objectives &amp; Success Criteria
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Scope
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-technical-approach" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Technical Approach
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Technical Approach">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-three-clouds-and-cmx-vm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 Three Clouds and cmx vm
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-devops-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 DevOps Pipeline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-the-three-tiers-and-the-web-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 The Three Tiers and the Web Page
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#55-ai-model-serving-backend-tier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5 AI / Model Serving (Backend Tier)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#56-security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.6 Security
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#57-error-handling-and-readiness-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.7 Error Handling and Readiness Checks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#58-api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8 API Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#59-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.9 Testing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-project-plan-timeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Project Plan &amp; Timeline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-resources-budget" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Resources &amp; Budget
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-risk-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Risk Management
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-evaluation-success-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Evaluation &amp; Success Metrics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-deliverables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Deliverables
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Issues
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="inferscale-one-ml-inference-service-on-three-clouds-with-cmx-vm">InferScale: One ML Inference Service on Three Clouds with cmx vm</h1>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Course:</strong></td>
+<td>COMP 488 – Cloud Computing, DevOps, and AI</td>
+</tr>
+<tr>
+<td><strong>Team Members</strong></td>
+<td>- <em>Khaja Shabbir Ahmed</em> – Cloud / DevOps Engineer (solo project)</td>
+</tr>
+<tr>
+<td><strong>Contact</strong></td>
+<td><a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#107;&#97;&#104;&#109;&#101;&#100;&#53;&#64;&#108;&#117;&#99;&#46;&#101;&#100;&#117;">&#107;&#97;&#104;&#109;&#101;&#100;&#53;&#64;&#108;&#117;&#99;&#46;&#101;&#100;&#117;</a></td>
+</tr>
+<tr>
+<td><strong>Instructor</strong></td>
+<td>Gregor von Laszewski</td>
+</tr>
+<tr>
+<td><strong>Repository</strong></td>
+<td>https://github.com/cloudmesh-ai-luc/shabbir04</td>
+</tr>
+<tr>
+<td><strong>Presentation</strong></td>
+<td><a href="../InferScale-Presentation.pdf">InferScale-Presentation.pdf</a> (12 slides)</td>
+</tr>
+<tr>
+<td><strong>Date</strong></td>
+<td><em>Sep. 22, 2026</em></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="1-executive-summary">1. Executive Summary</h2>
+<p><strong>Problem.</strong> The same AI service often has to run on more than one cloud, but every cloud has its own
+way to create VMs, give them a public IP and clean them up. That makes deployments hard to repeat and
+clouds hard to compare fairly.</p>
+<p><strong>What InferScale does.</strong> InferScale is a small three-tier machine-learning service: a web frontend (nginx and
+a small HTML/JavaScript page), a backend that serves a sentiment-analysis model (DistilBERT) through a
+FastAPI REST API, and a PostgreSQL database that keeps each user's history of analyses. Each tier is its own
+Docker container, and the same three containers run on three clouds: <strong>Multipass</strong> on my laptop (local), <strong>Chameleon KVM@TACC</strong> (OpenStack) and <strong>AWS EC2</strong> (public
+cloud). All VMs are created, reached and deleted with one tool, <strong><code>cmx vm</code></strong> from the class project
+<a href="https://github.com/cloudmesh-ai/cloudmesh-ai-vm">cloudmesh-ai-vm</a>, which I also contribute to. One
+deploy script runs the same steps on every cloud, and a load test measures how each cloud performs.
+On top of plain predictions, InferScale has three features: an <strong>AI review filter</strong>, <strong>live monitoring
+with alerts</strong> of all three clouds (Prometheus and Grafana), and <strong>multi-cloud failover</strong>. The web page and
+the API are protected with accounts and passwords over HTTPS.</p>
+<p><strong>Result.</strong> A repeatable, automated workflow and a side-by-side comparison of deployment time, response
+time and cost on the three clouds. Where <code>cmx vm</code> falls short for this workflow, I fix it in small pull
+requests (for example the <code>cmx vm ip</code> command).</p>
+<hr />
+<h2 id="2-cloud-computing-devops-and-ai">2. Cloud Computing, DevOps, and AI</h2>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>How InferScale addresses it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Cloud Computing</strong></td>
+<td>Runs the same service as VMs (IaaS) on three different kinds of cloud: a local hypervisor, an OpenStack research cloud and a public cloud. Each VM runs a three-tier application: a public web frontend, a private model backend and a private database. Uses each cloud's networking (local IP, floating IP, public IP), security groups, Chameleon leases, and compares cost. <code>cmx vm</code> hides the differences behind one command line. <strong>Feature: multi-cloud failover.</strong> When one cloud is down, requests go to the next cloud.</td>
+</tr>
+<tr>
+<td><strong>DevOps</strong></td>
+<td>GitHub flow (branches, pull requests, issues), automated tests and Docker builds with GitHub Actions, a container registry, one deploy script for all clouds, a smoke test after every deployment, and clean-up so nothing keeps running. <strong>Feature: live monitoring with alerts.</strong> Every VM reports its requests, errors and response time at <code>/metrics</code>. Prometheus collects them from all three clouds, Grafana shows them on one dashboard, and an alert fires when a cloud stops answering or has too many errors.</td>
+</tr>
+<tr>
+<td><strong>AI</strong></td>
+<td>The workload is an AI model: DistilBERT sentiment analysis served for inference on CPU. The project measures how fast that model answers on each cloud. <strong>Feature: review filter.</strong> The model returns only the reviews with a chosen label (for example, negative) that it is confident about.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-requirements-objectives-success-criteria">3. Requirements, Objectives &amp; Success Criteria</h2>
+<p>The requirements say what InferScale must do (functional) and how well it must do it (non-functional).
+Each one is checked by a test or a measurement (sections 5.9 and 9).</p>
+<h3 id="31-functional-requirements">3.1 Functional Requirements</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>The system must…</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FR-1</td>
+<td>Classify one review (<code>POST /api/predict</code>): return the label and score (<code>UNCERTAIN</code> below an optional <code>min_score</code>), and save the result in the database</td>
+</tr>
+<tr>
+<td>FR-2</td>
+<td>Filter a list of reviews (<code>POST /api/filter</code>) by label and minimum score</td>
+</tr>
+<tr>
+<td>FR-3</td>
+<td>Show the signed-in account its recent analyses (<code>GET /api/history</code>)</td>
+</tr>
+<tr>
+<td>FR-4</td>
+<td>Offer a web page to analyze, filter and see the history, behind a login</td>
+</tr>
+<tr>
+<td>FR-5</td>
+<td>Answer <code>/api/health</code> without a login; allow <code>/api/metrics</code> only for <code>owner</code> and <code>prometheus</code></td>
+</tr>
+<tr>
+<td>FR-6</td>
+<td>Deploy and remove the service on each cloud with <code>deploy.sh</code> and <code>destroy.sh</code>, exporting the database before a VM is deleted</td>
+</tr>
+<tr>
+<td>FR-7</td>
+<td>Send a request to the next cloud when one cloud fails (<code>client.py</code>)</td>
+</tr>
+<tr>
+<td>FR-8</td>
+<td>Monitor all three clouds with alerts, and load-test each cloud</td>
+</tr>
+</tbody>
+</table>
+<h3 id="32-non-functional-requirements">3.2 Non-Functional Requirements</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Quality</th>
+<th>Requirement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NFR-1</td>
+<td>Performance</td>
+<td>Server-side p95 under 1 second for one review, with 10 users</td>
+</tr>
+<tr>
+<td>NFR-2</td>
+<td>Reliability</td>
+<td>At least 99 % of requests succeed, also during failover</td>
+</tr>
+<tr>
+<td>NFR-3</td>
+<td>Security</td>
+<td>HTTPS and login; the backend and the database have no public port; no secrets in Git</td>
+</tr>
+<tr>
+<td>NFR-4</td>
+<td>Deployability</td>
+<td>Under 15 minutes per cloud, with the same script on every cloud</td>
+</tr>
+<tr>
+<td>NFR-5</td>
+<td>Resources and cost</td>
+<td>Runs on a 1 vCPU, 2 GB VM; $0 out of pocket and under $1 per AWS session</td>
+</tr>
+<tr>
+<td>NFR-6</td>
+<td>Data durability</td>
+<td>The history survives container restarts (Docker volume) and is exported before a VM is deleted</td>
+</tr>
+</tbody>
+</table>
+<h3 id="33-objectives-success-criteria">3.3 Objectives &amp; Success Criteria</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Objective</th>
+<th>Success criterion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Package the three tiers as containers</td>
+<td><code>/health</code> and <code>/predict</code> pass the tests; the web page shows a prediction; CI builds the web and api images (the database uses the official PostgreSQL image)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Run the service on three clouds using <code>cmx vm</code> for all VM management</td>
+<td><code>/predict</code> answers on Multipass, Chameleon and AWS</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Automate the deployment</td>
+<td><code>./deploy.sh &lt;cloud&gt;</code> goes from no VM to a working service with one command</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Measure and compare the clouds</td>
+<td>A results table with deploy time, latency (p50/p95), success rate and cost per cloud</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Improve <code>cmx vm</code> where the project needs it</td>
+<td>Small, reviewed pull requests to cloudmesh-ai-vm</td>
+</tr>
+<tr>
+<td>6</td>
+<td>AI review filter</td>
+<td><code>/filter</code> returns only the reviews with the chosen label and a score at or above the threshold</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Live monitoring with alerts</td>
+<td>One Grafana dashboard shows requests, errors and response time for all three clouds, updated every 5 seconds; an alert fires when a cloud stops answering</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Multi-cloud failover</td>
+<td>With one cloud's VM deleted during a test run, requests still succeed through the other clouds</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="4-scope">4. Scope</h2>
+<table>
+<thead>
+<tr>
+<th>In scope</th>
+<th>Out of scope</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Three tiers: web frontend (nginx + HTML/JavaScript), backend (FastAPI + DistilBERT) and a PostgreSQL database, each in its own container</td>
+<td>Training or fine-tuning models</td>
+</tr>
+<tr>
+<td>Three clouds: Multipass, Chameleon KVM@TACC, AWS EC2</td>
+<td>Kubernetes and autoscaling (dropped to keep the project simple)</td>
+</tr>
+<tr>
+<td>Deploy script built on <code>cmx vm</code></td>
+<td>GPUs</td>
+</tr>
+<tr>
+<td>CI with GitHub Actions</td>
+<td>High availability and 24/7 monitoring (monitoring runs only during my sessions)</td>
+</tr>
+<tr>
+<td>Load test and comparison of the three clouds</td>
+<td>Other public clouds (Azure, GCP)</td>
+</tr>
+<tr>
+<td>Small fixes to <code>cmx vm</code></td>
+<td>A load balancer in front of the clouds (failover is done in the client)</td>
+</tr>
+<tr>
+<td>Three features: review filter, live monitoring with alerts, multi-cloud failover</td>
+<td>Sending alerts by email or chat (alerts are shown in Prometheus and Grafana)</td>
+</tr>
+<tr>
+<td>Login with fixed accounts over HTTPS</td>
+<td>Sign-up pages and self-service accounts; frontend frameworks such as React; a Let's Encrypt certificate (it needs a domain name)</td>
+</tr>
+<tr>
+<td>A history of analyses in a PostgreSQL database on each VM</td>
+<td>Copying the database between clouds (each cloud keeps its own history); managed databases such as AWS RDS</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5-technical-approach">5. Technical Approach</h2>
+<h3 id="51-architecture">5.1 Architecture</h3>
+<p><img alt="InferScale architecture: GitHub Actions builds the web and api images; cmx vm on my laptop runs all three tiers on Multipass, Chameleon and AWS" src="../images/architecture.svg" /></p>
+<pre><code class="language-mermaid">flowchart LR
+    GH[GitHub repo] --&gt;|push| CI[GitHub Actions&lt;br/&gt;test + build image]
+    CI --&gt;|push image| REG[(GitHub Container Registry)]
+    subgraph LAPTOP[My laptop]
+        DEP[deploy.sh] --&gt; CMX[cmx vm]
+        CL[Browser: web page&lt;br/&gt;client.py failover&lt;br/&gt;Locust load test]
+        PROM[Prometheus&lt;br/&gt;alert rules] --&gt; GRAF[Grafana&lt;br/&gt;dashboard]
+    end
+    CMX --&gt;|start / run / delete| MP[Multipass VM&lt;br/&gt;local]
+    CMX --&gt;|start / ip assign / run / delete| CH[Chameleon KVM@TACC VM&lt;br/&gt;OpenStack]
+    CMX --&gt;|start / run / delete| AWS[AWS EC2 VM&lt;br/&gt;public cloud]
+    REG -. docker pull web + api .-&gt; MP
+    REG -. docker pull .-&gt; CH
+    REG -. docker pull .-&gt; AWS
+    CL --&gt;|HTTPS :443| MP
+    CL --&gt;|HTTPS :443| CH
+    CL --&gt;|HTTPS :443| AWS
+    PROM -. scrape /api/metrics .-&gt; MP
+    PROM -. scrape /api/metrics .-&gt; CH
+    PROM -. scrape /api/metrics .-&gt; AWS
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Technology</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Web frontend (<code>web</code> container)</td>
+<td>nginx, HTML + JavaScript</td>
+<td>Serves the web page over HTTPS, checks the login and forwards <code>/api/</code> to the backend; the only public port (443)</td>
+</tr>
+<tr>
+<td>Backend API (<code>api</code> container)</td>
+<td>Python, FastAPI, Hugging Face Transformers</td>
+<td>Endpoints <code>GET /health</code>, <code>POST /predict</code>, <code>POST /filter</code>, <code>GET /history</code>, <code>GET /metrics</code>; port 8000 on the internal Docker network only</td>
+</tr>
+<tr>
+<td>Database (<code>db</code> container)</td>
+<td>PostgreSQL 16 (official image)</td>
+<td>Stores the history of analyses; port 5432 on the internal Docker network only; data in a Docker volume</td>
+</tr>
+<tr>
+<td>Monitoring and alerts</td>
+<td>Prometheus, Grafana (Docker on my laptop)</td>
+<td>Prometheus collects <code>/metrics</code> from all three clouds every 5 seconds and checks the alert rules; Grafana shows one dashboard</td>
+</tr>
+<tr>
+<td>Failover client</td>
+<td><code>client.py</code></td>
+<td>Sends each request to AWS, then Chameleon, then Multipass, until one answers</td>
+</tr>
+<tr>
+<td>Containers</td>
+<td>Docker, GitHub Container Registry</td>
+<td>Images <code>ghcr.io/shabbir04/inferscale-web</code> and <code>ghcr.io/shabbir04/inferscale-api</code>; the database uses <code>postgres:16-alpine</code></td>
+</tr>
+<tr>
+<td>VM management</td>
+<td><code>cmx vm</code> (cloudmesh-ai-vm, <code>dev2</code> branch)</td>
+<td>The only tool used to create, reach and delete VMs</td>
+</tr>
+<tr>
+<td>Deployment</td>
+<td><code>deploy.sh</code></td>
+<td>Runs the same <code>cmx vm</code> steps on each cloud</td>
+</tr>
+<tr>
+<td>Load test</td>
+<td>Locust</td>
+<td>Runs from my laptop against each cloud</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Data tier.</strong> Each VM runs its own PostgreSQL database in a third container. It stores every analysis from
+<code>/api/predict</code> (time, account, text, label and score), so each user can see their history. The database
+has no public port: only <code>api</code> reaches it, on the internal Docker network. Its data lives in a Docker volume,
+so it survives container restarts, and <code>destroy.sh</code> exports it (<code>pg_dump</code>) to <code>results/&lt;cloud&gt;/</code> before the
+VM is deleted. Each cloud keeps its own history; copying data between clouds is out of scope, so failover
+still works without any data sync. Metrics, the Grafana dashboard and the load-test results stay on my
+laptop and in this repository.</p>
+<h3 id="52-three-clouds-and-cmx-vm">5.2 Three Clouds and cmx vm</h3>
+<p><strong>Why these three.</strong> Multipass is free and fast for development. Chameleon KVM@TACC is the class
+OpenStack cloud (project CH-817419). AWS is the most widely used public cloud, and new accounts get
+Free plan credits.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Local</th>
+<th>OpenStack</th>
+<th>Public</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Cloud</strong></td>
+<td>Multipass on my Mac</td>
+<td>Chameleon KVM@TACC</td>
+<td>AWS EC2</td>
+</tr>
+<tr>
+<td><strong><code>cmx vm</code> provider</strong></td>
+<td><code>multipass</code></td>
+<td><code>chameleon</code></td>
+<td><code>aws</code></td>
+</tr>
+<tr>
+<td><strong>VM size</strong></td>
+<td>1 vCPU, 2 GB (set in <code>~/.config/cloudmesh/clouds.yaml</code>)</td>
+<td><code>m1.small</code> (1 vCPU, 2 GB)</td>
+<td><code>t3.small</code> (2 vCPU, 2 GB)</td>
+</tr>
+<tr>
+<td><strong>OS image</strong></td>
+<td>Ubuntu 22.04</td>
+<td>CC-Ubuntu22.04</td>
+<td>Ubuntu 22.04</td>
+</tr>
+<tr>
+<td><strong>How the service is reached</strong></td>
+<td>The VM's local IP</td>
+<td>Floating IP</td>
+<td>The instance's public IP</td>
+</tr>
+<tr>
+<td><strong>Port 443 (HTTPS, frontend tier)</strong></td>
+<td>Open by default</td>
+<td>Rule added with <code>cmx vm security-group</code></td>
+<td>Rule in the instance's security group</td>
+</tr>
+<tr>
+<td><strong>Special step</strong></td>
+<td>None</td>
+<td><code>cmx vm start</code> creates a lease; end the lease after <code>cmx vm delete</code></td>
+<td>Delete the instance after every session</td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td><code>cmx vm</code> VM lifecycle tested</td>
+<td><code>start</code>, <code>list</code>, <code>ip assign</code>, <code>delete</code> tested (Oct 14)</td>
+<td>Account and credentials not set up yet</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The steps <code>deploy.sh</code> runs on every cloud</strong> (simplified; section 5.7 adds the error handling)<strong>:</strong></p>
+<pre><code class="language-bash">cmx vm cloud set chameleon                 # multipass | chameleon | aws
+cmx vm start inferscale                    # Chameleon: also creates a lease (--duration 2h)
+cmx vm list                                # shows the VM and its IP
+cmx vm run inferscale &quot;curl -fsSL https://get.docker.com | sudo sh&quot;
+cmx vm run inferscale &quot;sudo mkdir -p /etc/inferscale/web &amp;&amp; cd /etc/inferscale/web &amp;&amp; \
+  sudo openssl req -x509 -newkey rsa:2048 -nodes -days 7 -subj /CN=&lt;ip&gt; \
+       -addext subjectAltName=IP:&lt;ip&gt; -keyout tls.key -out tls.crt &amp;&amp; \
+  echo &lt;htpasswd-as-base64&gt; | base64 -d | sudo tee htpasswd &gt;/dev/null &amp;&amp; \
+  echo &lt;metrics-htpasswd-as-base64&gt; | base64 -d | sudo tee metrics.htpasswd &gt;/dev/null &amp;&amp; \
+  sudo chown -R 101 /etc/inferscale/web&quot;    # 101 is the nginx user in the web image
+cmx vm run inferscale &quot;sudo sh -c 'umask 077; \
+  echo POSTGRES_PASSWORD=\$(openssl rand -hex 16) &gt; /etc/inferscale/db.env'&quot;   # made on the VM, never leaves it
+cmx vm run inferscale &quot;sudo docker network create inferscale &amp;&amp; \
+  sudo docker run -d --restart unless-stopped --name db --network inferscale \
+       --env-file /etc/inferscale/db.env -e POSTGRES_USER=inferscale \
+       -v pgdata:/var/lib/postgresql/data postgres:16-alpine &amp;&amp; \
+  sudo docker run -d --restart unless-stopped --name api --network inferscale \
+       --env-file /etc/inferscale/db.env ghcr.io/shabbir04/inferscale-api:latest &amp;&amp; \
+  sudo docker run -d --restart unless-stopped --name web --network inferscale -p 443:8443 \
+       -v /etc/inferscale/web:/etc/nginx/secrets:ro ghcr.io/shabbir04/inferscale-web:latest&quot;
+openssl s_client -connect &lt;ip&gt;:443 &lt;/dev/null | openssl x509 &gt; ~/.config/inferscale/certs/chameleon.pem
+curl -f --cacert ~/.config/inferscale/certs/chameleon.pem https://&lt;ip&gt;/api/health   # smoke test
+locust -f loadtest.py --headless -u 10 -r 2 -t 60s --host https://&lt;ip&gt;
+cmx vm delete inferscale                   # Chameleon: then delete the lease
+</code></pre>
+<p>Only the <code>web</code> container publishes a port (<code>-p 443:8443</code>). The <code>api</code> and <code>db</code> containers have no public
+port; <code>web</code> reaches <code>api</code> (<code>api:8000</code>) and <code>api</code> reaches <code>db</code> (<code>db:5432</code>) by name on the private Docker
+network <code>inferscale</code>. The database data lives in the Docker volume <code>pgdata</code>. The database password is
+random, created on the VM and never leaves it. The two login files hold only password hashes; the
+passwords themselves stay in <code>~/.config/inferscale/</code> on my laptop (section 5.6).</p>
+<p>On Chameleon a VM can also be started without an IP (<code>cmx vm start inferscale --ip no</code>) and get one
+later with <code>cmx vm ip assign inferscale</code>.</p>
+<p><strong>Clean-up with <code>destroy.sh &lt;cloud&gt;</code>.</strong> One script undoes a deployment: it saves the container logs
+(<code>docker logs</code>) and a database export (<code>pg_dump</code>) to <code>results/&lt;cloud&gt;/</code>, runs <code>cmx vm delete inferscale</code>, ends the lease on
+Chameleon, and removes the cloud's IP from <code>targets.json</code> and from the client's config file. Prometheus then does not raise a false <code>CloudDown</code> alert, and failover does not try a deleted VM.</p>
+<p><strong>Multi-cloud failover.</strong> <code>deploy.sh</code> writes each cloud's IP into a small config file. <code>client.py</code> tries
+the clouds in order, so the service keeps answering when one cloud is down:</p>
+<pre><code class="language-python">import os
+import requests
+
+CONFIG = os.path.expanduser(&quot;~/.config/inferscale&quot;)      # outside Git
+CLOUDS = [&quot;https://&lt;aws-ip&gt;/api&quot;, &quot;https://&lt;chameleon-ip&gt;/api&quot;, &quot;https://&lt;multipass-ip&gt;/api&quot;]
+AUTH = (&quot;client&quot;, open(f&quot;{CONFIG}/client.password&quot;).read().strip())
+CERTS = f&quot;{CONFIG}/certs.pem&quot;                            # the clouds' self-signed certificates
+
+def predict(text):
+    for url in CLOUDS:
+        try:
+            r = requests.post(f&quot;{url}/predict&quot;, json={&quot;text&quot;: text},
+                              auth=AUTH, verify=CERTS, timeout=3)
+            r.raise_for_status()   # an HTTP error, e.g. a 502 from nginx, also counts as a failure
+            return r.json()
+        except requests.RequestException:
+            continue  # this cloud is down, try the next one
+    raise RuntimeError(&quot;all clouds are down&quot;)
+</code></pre>
+<p>The demo: run requests through <code>client.py</code>, delete the AWS VM with <code>cmx vm delete</code>, and the requests
+keep working through Chameleon.</p>
+<h3 id="53-devops-pipeline">5.3 DevOps Pipeline</h3>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Tool</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Source</td>
+<td>GitHub</td>
+<td>One branch per change, pull requests, issues</td>
+</tr>
+<tr>
+<td>Test</td>
+<td>pytest, gitleaks, pip-audit (GitHub Actions)</td>
+<td>Unit, container and security tests, a secret scan and a dependency check on every push (section 5.9)</td>
+</tr>
+<tr>
+<td>Build</td>
+<td>Docker (GitHub Actions)</td>
+<td>Builds the two images (<code>inferscale-web</code>, <code>inferscale-api</code>) and pushes them to GitHub Container Registry</td>
+</tr>
+<tr>
+<td>Deploy</td>
+<td><code>deploy.sh</code> + <code>cmx vm</code></td>
+<td>Creates the VM and starts the three containers on the chosen cloud</td>
+</tr>
+<tr>
+<td>Verify</td>
+<td><code>curl /api/health</code>, Locust</td>
+<td>Checks the service through the frontend tier, then measures latency</td>
+</tr>
+<tr>
+<td>Monitor</td>
+<td>Prometheus + Grafana</td>
+<td>Shows live requests, errors and response time for all three clouds, and raises an alert when a cloud is down or has too many errors</td>
+</tr>
+<tr>
+<td>Clean up</td>
+<td><code>cmx vm delete</code></td>
+<td>Removes the VM (and the Chameleon lease) after each session</td>
+</tr>
+</tbody>
+</table>
+<p>The Python environment is a <code>venv</code> with <code>pip</code>, not conda, which keeps the VMs and containers clean.</p>
+<p><strong>Small, traceable images.</strong> The <code>api</code> image installs the CPU-only build of PyTorch and downloads the model
+when the image is built. A VM then pulls an image of about 1–2 GB (PyTorch with GPU libraries would be
+several GB, too big for an 8 GB disk) and does not need Hugging Face at start-up. Each image is tagged with
+the version from <code>VERSION</code> (for example <code>inferscale-api:0.1.0</code>), the Git commit (for example
+<code>inferscale-api:3f9c2ab</code>) and <code>latest</code>. Every result can be traced to the code that produced it, and a bad
+release can be rolled back to the last good version on all three clouds. The packages are public, so the VMs pull them without a login.</p>
+<p><strong>Live monitoring with alerts.</strong> Prometheus and Grafana run in Docker on my laptop (<code>docker compose up</code>).
+<code>deploy.sh</code> writes each cloud's IP into <code>targets.json</code>, and Prometheus reads the file again when it
+changes. Prometheus collects <code>/api/metrics</code> through the frontend tier of every cloud every 5 seconds and
+checks two alert rules:</p>
+<pre><code class="language-yaml"># prometheus.yml
+scrape_configs:
+  - job_name: inferscale
+    scrape_interval: 5s
+    scheme: https
+    metrics_path: /api/metrics   # nginx forwards it to the backend
+    basic_auth:
+      username: prometheus
+      password_file: /etc/prometheus/prometheus.password   # from ~/.config/inferscale, not in Git
+    tls_config:
+      ca_file: /etc/prometheus/certs.pem                   # the clouds' self-signed certificates
+    file_sd_configs:
+      - files: [targets.json]    # one entry per cloud, e.g. {&quot;targets&quot;: [&quot;&lt;aws-ip&gt;:443&quot;], &quot;labels&quot;: {&quot;cloud&quot;: &quot;aws&quot;}}
+rule_files: [alerts.yml]
+</code></pre>
+<pre><code class="language-yaml"># alerts.yml
+groups:
+  - name: inferscale
+    rules:
+      - alert: CloudDown          # a cloud does not answer for 1 minute
+        expr: up{job=&quot;inferscale&quot;} == 0
+        for: 1m
+      - alert: HighErrorRate      # more than 5 % of requests fail for 1 minute
+        expr: sum by (cloud) (rate(http_requests_total{status=&quot;5xx&quot;}[1m]))
+              / sum by (cloud) (rate(http_requests_total[1m])) &gt; 0.05
+        for: 1m
+</code></pre>
+<p>The Grafana dashboard has one line per cloud for requests per second, errors and p95 response time, and
+a panel that lists the alerts that are firing.</p>
+<h3 id="54-the-three-tiers-and-the-web-page">5.4 The Three Tiers and the Web Page</h3>
+<p>InferScale has three tiers. Each runs in its own container on the same VM:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Frontend tier</th>
+<th>Backend tier</th>
+<th>Data tier</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Container</strong></td>
+<td><code>web</code>: nginx + one HTML/JavaScript page</td>
+<td><code>api</code>: FastAPI + DistilBERT</td>
+<td><code>db</code>: PostgreSQL 16</td>
+</tr>
+<tr>
+<td><strong>Image</strong></td>
+<td><code>ghcr.io/shabbir04/inferscale-web</code></td>
+<td><code>ghcr.io/shabbir04/inferscale-api</code></td>
+<td><code>postgres:16-alpine</code> (official)</td>
+</tr>
+<tr>
+<td><strong>Job</strong></td>
+<td>Shows the web page, checks the login and forwards <code>/api/...</code> to the backend</td>
+<td>Runs the model, answers the API and saves each analysis</td>
+<td>Stores the history of analyses</td>
+</tr>
+<tr>
+<td><strong>Port</strong></td>
+<td>443 (HTTPS, login needed), the only public port</td>
+<td>8000, internal Docker network only</td>
+<td>5432, internal Docker network only</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-mermaid">flowchart LR
+    U[Browser, client.py,&lt;br/&gt;Locust, Prometheus] --&gt;|HTTPS :443 + login| WEB
+    subgraph VM[One VM on each cloud]
+        WEB[web container&lt;br/&gt;nginx + web page] --&gt;|&quot;/api/ → api:8000 (internal network)&quot;| API[api container&lt;br/&gt;FastAPI + DistilBERT]
+        API --&gt;|&quot;SQL → db:5432 (internal network)&quot;| DB[(db container&lt;br/&gt;PostgreSQL)]
+    end
+</code></pre>
+<p>The page has three parts: type one review and press <strong>Analyze</strong> to see its label and score, paste several
+reviews and press <strong>Filter</strong> to see only the confident ones with the chosen label, or open <strong>My history</strong>
+to see the last 20 reviews this account analyzed. The browser asks for a user name and password first. nginx serves the page over HTTPS, checks the login, limits the
+request rate and passes API calls to the backend:</p>
+<pre><code class="language-nginx"># nginx config in the web image (nginx's unprivileged image, runs as a normal user)
+limit_req_zone $binary_remote_addr zone=perip:10m rate=50r/s;
+
+server {
+    listen 8443 ssl;                                       # published as port 443
+    ssl_certificate     /etc/nginx/secrets/tls.crt;
+    ssl_certificate_key /etc/nginx/secrets/tls.key;
+    limit_req zone=perip burst=100 nodelay;               # too many requests -&gt; 429
+    limit_req_status 429;
+    auth_basic           &quot;InferScale&quot;;
+    auth_basic_user_file /etc/nginx/secrets/htpasswd;     # SHA-512 hashes, no plain passwords
+
+    location /             { root /usr/share/nginx/html; }       # the web page
+    location /api/ {                                              # forward to the backend tier
+        proxy_pass http://api:8000/;
+        proxy_set_header X-User $remote_user;                     # the signed-in account
+    }
+    location = /api/health { auth_basic off; proxy_pass http://api:8000/health; }
+    location = /api/metrics {                                     # only owner and prometheus
+        auth_basic_user_file /etc/nginx/secrets/metrics.htpasswd;
+        proxy_pass http://api:8000/metrics;
+    }
+}
+</code></pre>
+<p>The page calls the backend only through nginx, so the browser never talks to the model container directly:</p>
+<pre><code class="language-javascript">async function analyze() {
+  const text = document.getElementById(&quot;text&quot;).value;
+  const r = await fetch(&quot;/api/predict&quot;, {method: &quot;POST&quot;, headers: {&quot;Content-Type&quot;: &quot;application/json&quot;},
+                                         body: JSON.stringify({text})});
+  const {label, score} = await r.json();
+  document.getElementById(&quot;result&quot;).textContent = `${label} (${score.toFixed(2)})`;
+}
+</code></pre>
+<p>The page and the API come from the same address, so no CORS setup is needed, and the browser sends the
+login with every call.</p>
+<h3 id="55-ai-model-serving-backend-tier">5.5 AI / Model Serving (Backend Tier)</h3>
+<p>The model is <code>distilbert/distilbert-base-uncased-finetuned-sst-2-english</code>. It is small enough to run on a
+CPU and fit in a 2 GB VM. The core of the service:</p>
+<pre><code class="language-python"># src/inferscale/app.py
+import asyncio
+import os
+from contextlib import asynccontextmanager
+from functools import lru_cache
+from typing import Literal
+
+import psycopg
+from fastapi import Depends, FastAPI, Header, HTTPException, Query
+from pydantic import BaseModel, Field
+from prometheus_fastapi_instrumentator import Instrumentator
+from transformers import pipeline
+
+MODEL = &quot;distilbert/distilbert-base-uncased-finetuned-sst-2-english&quot;
+# the password comes from /etc/inferscale/db.env on the VM, never from Git
+DB_URL = f&quot;postgresql://inferscale:{os.environ.get('POSTGRES_PASSWORD', '')}@db:5432/inferscale&quot;
+SCHEMA = &quot;&quot;&quot;CREATE TABLE IF NOT EXISTS predictions (
+    id SERIAL PRIMARY KEY, created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    account TEXT NOT NULL, text TEXT NOT NULL, label TEXT NOT NULL, score REAL NOT NULL)&quot;&quot;&quot;
+
+@lru_cache
+def get_classifier():
+    return pipeline(&quot;sentiment-analysis&quot;, model=MODEL)   # loaded once, then reused
+
+def get_db():
+    try:
+        conn = psycopg.connect(DB_URL, connect_timeout=3)
+    except psycopg.OperationalError:
+        raise HTTPException(503, &quot;database not available&quot;)
+    with conn:                                           # commits when the request ends
+        yield conn
+
+@asynccontextmanager
+async def lifespan(app):
+    for _ in range(30):                                  # wait up to 30 s for the db container
+        try:
+            with psycopg.connect(DB_URL) as conn:
+                conn.execute(SCHEMA)
+            break
+        except psycopg.OperationalError:
+            await asyncio.sleep(1)
+    get_classifier()                                     # load the model at start-up
+    yield
+
+app = FastAPI(lifespan=lifespan)
+Instrumentator().instrument(app).expose(app)             # adds GET /metrics
+
+class Review(BaseModel):
+    text: str = Field(min_length=1, max_length=5000)
+    min_score: float | None = Field(None, ge=0, le=1)   # optional: below it the label is UNCERTAIN
+
+class Reviews(BaseModel):
+    texts: list[str] = Field(min_length=1, max_length=100)
+    label: Literal[&quot;POSITIVE&quot;, &quot;NEGATIVE&quot;] = &quot;NEGATIVE&quot;
+    min_score: float = Field(0.9, ge=0, le=1)
+
+@app.get(&quot;/health&quot;)
+def health():
+    return {&quot;status&quot;: &quot;ok&quot;}
+
+@app.post(&quot;/predict&quot;)
+def predict(item: Review, user: str = Header(&quot;unknown&quot;, alias=&quot;X-User&quot;),
+            classifier=Depends(get_classifier), db=Depends(get_db)):
+    result = classifier(item.text, truncation=True)[0]  # e.g. {&quot;label&quot;: &quot;POSITIVE&quot;, &quot;score&quot;: 0.99}
+    if item.min_score is not None and result[&quot;score&quot;] &lt; item.min_score:
+        result = {&quot;label&quot;: &quot;UNCERTAIN&quot;, &quot;score&quot;: result[&quot;score&quot;]}      # not confident enough
+    db.execute(&quot;INSERT INTO predictions (account, text, label, score) VALUES (%s, %s, %s, %s)&quot;,
+               (user, item.text, result[&quot;label&quot;], result[&quot;score&quot;]))   # parameters, not joined text
+    return result
+
+@app.post(&quot;/filter&quot;)
+def filter_reviews(item: Reviews, classifier=Depends(get_classifier)):
+    # only the confident reviews with the chosen label, e.g. the confident negative ones
+    results = classifier(item.texts, truncation=True)
+    return [{&quot;text&quot;: t, **r} for t, r in zip(item.texts, results)
+            if r[&quot;label&quot;] == item.label and r[&quot;score&quot;] &gt;= item.min_score]
+
+@app.get(&quot;/history&quot;)
+def history(limit: int = Query(20, ge=1, le=100), user: str = Header(&quot;unknown&quot;, alias=&quot;X-User&quot;),
+            db=Depends(get_db)):
+    rows = db.execute(&quot;SELECT created_at, text, label, score FROM predictions &quot;
+                      &quot;WHERE account = %s ORDER BY id DESC LIMIT %s&quot;, (user, limit)).fetchall()
+    return [{&quot;time&quot;: created.isoformat(), &quot;text&quot;: text, &quot;label&quot;: label, &quot;score&quot;: score}
+            for created, text, label, score in rows]
+</code></pre>
+<p>The Pydantic models check every request, so bad input gets a clear <code>422</code> error instead of crashing the
+service. <code>truncation=True</code> cuts texts that are longer than the model's limit of 512 tokens. With the
+optional <code>min_score</code>, <code>/predict</code> answers <code>UNCERTAIN</code> when the model is not confident enough. The model and
+the database are handed to the endpoints with <code>Depends</code>, so the tests can swap in fakes (section 5.9).</p>
+<p><code>/metrics</code> comes from the <code>prometheus-fastapi-instrumentator</code> library. It counts every request with its
+status code and response time, in the format Prometheus reads.</p>
+<h3 id="56-security">5.6 Security</h3>
+<p><strong>Accounts and passwords.</strong> The web page and the API need a login. nginx checks it with HTTP Basic
+authentication, and only over HTTPS, so a password is never sent in clear text. The accounts are a fixed
+list that I create, so no sign-up page is needed (the database stores analyses, not accounts):</p>
+<table>
+<thead>
+<tr>
+<th>Account</th>
+<th>Used by</th>
+<th>Can use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>owner</code></td>
+<td>Me</td>
+<td>Web page, API, metrics</td>
+</tr>
+<tr>
+<td><code>demo</code></td>
+<td>The professor and the class during a demo; the password is changed after every demo</td>
+<td>Web page, API</td>
+</tr>
+<tr>
+<td><code>client</code></td>
+<td><code>client.py</code> and Locust</td>
+<td>Web page, API</td>
+</tr>
+<tr>
+<td><code>prometheus</code></td>
+<td>Prometheus on my laptop</td>
+<td>Metrics only</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Passwords</strong> are 24 random characters (<code>openssl rand -base64 24</code>) and live only on my laptop in
+  <code>~/.config/inferscale/</code> (file mode 600, outside Git). The VM receives only SHA-512 hashes
+  (<code>openssl passwd -6</code>), so the passwords themselves are never stored on a cloud.</li>
+<li><strong>HTTPS.</strong> <code>deploy.sh</code> creates a self-signed certificate for the VM's IP. My laptop saves it the first
+  time it connects and checks it on every later call, so a fake server is rejected. Browsers show a
+  warning once, because no authority signed the certificate; a free Let's Encrypt certificate would need
+  a domain name, which this project does not have.</li>
+<li><strong>Rate limit.</strong> nginx allows 50 requests per second from one address (bursts up to 100) and answers
+  <code>429</code> above that. This slows down password guessing and floods; the load test stays below the limit.</li>
+<li><strong>Network.</strong> Only port 443 is open, and only during testing. The backend has no public port: it is
+  reached only through nginx on the internal Docker network. Every VM is deleted after each session.</li>
+<li><strong>Containers run as normal users</strong>, not root: <code>web</code> uses nginx's unprivileged image (port 8443 inside
+  the container) and <code>api</code> runs as the user <code>app</code>.</li>
+<li><strong>No secrets in Git.</strong> Cloud credentials and passwords stay in <code>~/.config/</code>. <code>.gitignore</code> blocks <code>.env</code>,
+  <code>*.pem</code>, <code>*.key</code>, <code>*.password</code>, <code>id_*</code> and <code>clouds.yaml</code>, and CI runs a secret scan (gitleaks) and a
+  dependency check (pip-audit) on every push.</li>
+<li><strong>Database.</strong> PostgreSQL has no public port and only <code>api</code> can reach it. Its password is random,
+  created on the VM (<code>/etc/inferscale/db.env</code>, readable only by root) and never leaves it. The API uses
+  parameterized SQL (values are passed separately, never joined into the query), which prevents SQL
+  injection. nginx tells the API which account is signed in (<code>X-User</code>), so each user sees only their own
+  history.</li>
+<li><strong>VM login</strong> only with SSH keys, never passwords.</li>
+<li>Prometheus and Grafana run only on my laptop, and the test data is public example text with no
+  personal data.</li>
+</ul>
+<h3 id="57-error-handling-and-readiness-checks">5.7 Error Handling and Readiness Checks</h3>
+<table>
+<thead>
+<tr>
+<th>Level</th>
+<th>What can go wrong</th>
+<th>How it is handled</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>API</td>
+<td>Missing or wrong input, a text that is too long</td>
+<td>Pydantic returns a clear <code>422</code> error; <code>truncation=True</code> handles long texts</td>
+</tr>
+<tr>
+<td>Login</td>
+<td>A wrong password or too many requests</td>
+<td>nginx answers <code>401</code> or <code>429</code> before the request reaches the model</td>
+</tr>
+<tr>
+<td>Database</td>
+<td>The database is still starting or goes down</td>
+<td>At start-up <code>api</code> waits up to 30 seconds for it; later, a request that needs it gets <code>503</code>, and the <code>db</code> container restarts by itself</td>
+</tr>
+<tr>
+<td>Containers</td>
+<td>A container crashes</td>
+<td>Both run with <code>--restart unless-stopped</code>; <code>web</code> is restarted after <code>api</code> so nginx finds the new address</td>
+</tr>
+<tr>
+<td><code>deploy.sh</code></td>
+<td>A <code>cmx vm</code> step fails (for example "No valid host" on Chameleon)</td>
+<td><code>set -euo pipefail</code> stops the script at the first error</td>
+</tr>
+<tr>
+<td>Smoke test</td>
+<td>The model needs 20–60 seconds to load</td>
+<td><code>curl -f</code> retries <code>/api/health</code> every 10 seconds for up to 5 minutes</td>
+</tr>
+<tr>
+<td>Client</td>
+<td>A cloud is down or returns an HTTP error</td>
+<td><code>client.py</code> fails over to the next cloud (<code>raise_for_status()</code>)</td>
+</tr>
+<tr>
+<td>Operation</td>
+<td>A cloud stops answering or many requests fail</td>
+<td>The <code>CloudDown</code> and <code>HighErrorRate</code> alerts fire</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Before the first full deployment</strong> I check the parts that everything else depends on:</p>
+<ul>
+<li>[ ] <code>cmx vm run</code> works on each cloud (for example <code>cmx vm run inferscale "uname -a"</code>). So far only
+      <code>start</code>, <code>list</code>, <code>ip assign</code> and <code>delete</code> are tested.</li>
+<li>[ ] A small test image goes the whole way: GitHub Actions → GitHub Container Registry → <code>docker pull</code> on a
+      VM. The workflow's built-in token can only push under the repository owner (<code>cloudmesh-ai-luc</code>), so
+      the images go there or are pushed with a personal token stored as a GitHub secret.</li>
+<li>[ ] The VM disks are big enough for the image (AWS gives 8 GB and Multipass 5 GB by default).</li>
+<li>[ ] Prometheus in Docker on my laptop can reach the Multipass VM's local IP.</li>
+<li>[ ] The VM has a unique name in the shared Chameleon project (for example <code>inferscale-shabbir04</code>), so a
+      delete can never pick another student's VM.</li>
+</ul>
+<h3 id="58-api-reference">5.8 API Reference</h3>
+<p>All calls go to <code>https://&lt;vm-ip&gt;</code>, where nginx checks the login and forwards <code>/api/...</code> to the backend.</p>
+<table>
+<thead>
+<tr>
+<th>Method and path</th>
+<th>Login</th>
+<th>Request</th>
+<th>Response</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET /</code></td>
+<td>Any account</td>
+<td>–</td>
+<td>The web page</td>
+</tr>
+<tr>
+<td><code>GET /api/health</code></td>
+<td>None</td>
+<td>–</td>
+<td><code>{"status": "ok"}</code></td>
+</tr>
+<tr>
+<td><code>POST /api/predict</code></td>
+<td>Any account</td>
+<td><code>{"text": "…"}</code> (1–5000 characters), optional <code>"min_score": 0.8</code></td>
+<td><code>{"label": "POSITIVE", "score": 0.998}</code>, or <code>UNCERTAIN</code> below <code>min_score</code>; the result is saved</td>
+</tr>
+<tr>
+<td><code>POST /api/filter</code></td>
+<td>Any account</td>
+<td><code>{"texts": ["…"], "label": "NEGATIVE", "min_score": 0.9}</code> (1–100 texts)</td>
+<td>The matching reviews with their label and score</td>
+</tr>
+<tr>
+<td><code>GET /api/history?limit=20</code></td>
+<td>Any account</td>
+<td>–</td>
+<td>This account's last analyses: time, text, label, score</td>
+</tr>
+<tr>
+<td><code>GET /api/metrics</code></td>
+<td><code>owner</code>, <code>prometheus</code></td>
+<td>–</td>
+<td>Prometheus metrics</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Errors:</strong> <code>401</code> no or wrong login, <code>422</code> invalid input, <code>429</code> too many requests, <code>502</code> backend not
+reachable, <code>503</code> database not available.</p>
+<pre><code class="language-bash">curl --cacert ~/.config/inferscale/certs/aws.pem -u client https://&lt;aws-ip&gt;/api/predict \
+     -H &quot;Content-Type: application/json&quot; -d '{&quot;text&quot;: &quot;Great movie, I loved it!&quot;}'
+# {&quot;label&quot;:&quot;POSITIVE&quot;,&quot;score&quot;:0.9998}
+</code></pre>
+<h3 id="59-testing">5.9 Testing</h3>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Tool</th>
+<th>What it checks</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Unit</td>
+<td>pytest + FastAPI <code>TestClient</code></td>
+<td>Each endpoint's normal answer and its <code>422</code> errors; the results of <code>/filter</code> and <code>/history</code></td>
+<td>Every push (CI)</td>
+</tr>
+<tr>
+<td>Container</td>
+<td><code>docker compose up</code> in CI, then <code>curl</code></td>
+<td>The login is required and works; <code>/api/metrics</code> only for <code>prometheus</code>; an analysis shows up in the history; only port 443 is open</td>
+<td>Every push (CI)</td>
+</tr>
+<tr>
+<td>Security scan</td>
+<td>gitleaks, pip-audit</td>
+<td>No secrets in the repository; no dependency with a known vulnerability</td>
+<td>Every push (CI)</td>
+</tr>
+<tr>
+<td>Smoke</td>
+<td><code>deploy.sh</code></td>
+<td><code>/api/health</code> answers after a deployment</td>
+<td>Every deployment</td>
+</tr>
+<tr>
+<td>Load, failover, alert</td>
+<td>Locust, <code>client.py</code>, stopping a container</td>
+<td>The targets in section 9</td>
+<td>Measurement runs</td>
+</tr>
+</tbody>
+</table>
+<p>The unit tests replace the model and the database with small fakes (FastAPI's <code>dependency_overrides</code>), so
+they run in seconds without downloading the model or starting PostgreSQL.</p>
+<hr />
+<h2 id="6-project-plan-timeline">6. Project Plan &amp; Timeline</h2>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Tasks</th>
+<th>When</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Topic</td>
+<td>Title, first summary</td>
+<td>Sep 23 – Oct 1</td>
+<td>Done</td>
+</tr>
+<tr>
+<td><code>cmx vm</code> on two clouds</td>
+<td>VM lifecycle on Multipass and Chameleon, including the <code>cmx vm ip</code> command</td>
+<td>Sep 29 – Oct 14</td>
+<td>Done</td>
+</tr>
+<tr>
+<td>Simpler design</td>
+<td>Three clouds + <code>cmx vm</code> instead of Kubernetes</td>
+<td>Oct 14</td>
+<td>Done</td>
+</tr>
+<tr>
+<td>Third cloud</td>
+<td>AWS account and credentials, first <code>cmx vm</code> VM on AWS</td>
+<td>Oct 15 – Oct 22</td>
+<td>Next</td>
+</tr>
+<tr>
+<td>Service</td>
+<td>Backend (FastAPI + model, <code>/filter</code>, <code>/history</code>, <code>/metrics</code>), PostgreSQL, frontend (web page + nginx, HTTPS, login), Dockerfiles, tests</td>
+<td>Oct 15 – Oct 29</td>
+<td>Next</td>
+</tr>
+<tr>
+<td>CI</td>
+<td>GitHub Actions: test, build, push image</td>
+<td>Oct 29 – Nov 5</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>Deploy script</td>
+<td><code>deploy.sh</code> for all three clouds</td>
+<td>Nov 5 – Nov 12</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>Monitoring + failover</td>
+<td>Prometheus + Grafana (dashboard, alert rules), <code>client.py</code></td>
+<td>Nov 12 – Nov 19</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>Measurements</td>
+<td>Load tests and the failover test on the three clouds, results table</td>
+<td>Nov 19 – Dec 3</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>Final</td>
+<td>Report and presentation</td>
+<td>Dec 3 – Dec 10</td>
+<td>Planned</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="7-resources-budget">7. Resources &amp; Budget</h2>
+<table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Use</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Multipass on my Mac</td>
+<td>Development and the local cloud</td>
+<td>$0</td>
+</tr>
+<tr>
+<td>Chameleon KVM@TACC, <code>m1.small</code></td>
+<td>1–2 hour leases per session (project CH-817419)</td>
+<td>Class allocation, no money</td>
+</tr>
+<tr>
+<td>AWS EC2 <code>t3.small</code></td>
+<td>Short sessions, deleted afterwards</td>
+<td>About $0.02 per hour, covered by AWS Free plan credits</td>
+</tr>
+<tr>
+<td>GitHub Actions and Container Registry</td>
+<td>CI and image storage</td>
+<td>$0 within the free limits</td>
+</tr>
+<tr>
+<td>Prometheus and Grafana (Docker on my Mac)</td>
+<td>Monitoring and alerts</td>
+<td>$0 (open source)</td>
+</tr>
+<tr>
+<td>PostgreSQL (official image, on each VM)</td>
+<td>History of analyses</td>
+<td>$0 (open source)</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td></td>
+<td><strong>$0 out of pocket</strong></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="8-risk-management">8. Risk Management</h2>
+<table>
+<thead>
+<tr>
+<th>Risk</th>
+<th>Likelihood</th>
+<th>Impact</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Chameleon has no free capacity ("No valid host was found")</td>
+<td>Medium</td>
+<td>Delay</td>
+<td>Retry at another time; keep sessions short</td>
+</tr>
+<tr>
+<td>A Chameleon lease keeps running after <code>cmx vm delete</code></td>
+<td>High</td>
+<td>Uses allocation</td>
+<td>End the lease after every session</td>
+</tr>
+<tr>
+<td>An AWS instance is left running</td>
+<td>Low</td>
+<td>Cost</td>
+<td>Delete after every session; set a billing alert</td>
+</tr>
+<tr>
+<td>The model and the database need more memory than the VM has</td>
+<td>Medium</td>
+<td>Service crashes</td>
+<td>Use 2 GB VMs; keep PostgreSQL small; add swap or use a smaller model</td>
+</tr>
+<tr>
+<td>Credentials leak</td>
+<td>Low</td>
+<td>High</td>
+<td>Keep them only in <code>~/.config/</code>, never in Git</td>
+</tr>
+<tr>
+<td>The failover demo needs two or three clouds running at once</td>
+<td>Medium</td>
+<td>More cost and allocation</td>
+<td>Keep the demo under 30 minutes and delete everything right after</td>
+</tr>
+<tr>
+<td>A password leaks (for example the demo password)</td>
+<td>Low</td>
+<td>Someone else uses the service</td>
+<td>Change it in <code>~/.config/inferscale/</code> and redeploy; change the demo password after every demo</td>
+</tr>
+<tr>
+<td>The browser warns about the self-signed certificate</td>
+<td>High</td>
+<td>The demo looks broken</td>
+<td>Explain it once and accept the certificate before the demo</td>
+</tr>
+<tr>
+<td>The history is lost when a VM is deleted</td>
+<td>Medium</td>
+<td>Lost data</td>
+<td><code>destroy.sh</code> exports the database (<code>pg_dump</code>) first</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="9-evaluation-success-metrics">9. Evaluation &amp; Success Metrics</h2>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>How it is measured</th>
+<th>Target</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Deploy time (<code>cmx vm start</code> → first good <code>/predict</code>)</td>
+<td>Timer in <code>deploy.sh</code></td>
+<td>Under 15 minutes on each cloud</td>
+</tr>
+<tr>
+<td>Model start-up (cold start)</td>
+<td>Timer in <code>deploy.sh</code>: <code>docker run</code> → first healthy <code>/api/health</code></td>
+<td>Reported per cloud</td>
+</tr>
+<tr>
+<td>Latency p50 / p95</td>
+<td>Locust, 60 s, 10 users (end to end), and Prometheus (time on the server only)</td>
+<td>Reported per cloud</td>
+</tr>
+<tr>
+<td>Success rate</td>
+<td>Locust</td>
+<td>At least 99 %</td>
+</tr>
+<tr>
+<td>Cost per session</td>
+<td>Provider pricing and allocation used</td>
+<td>Under $1 per AWS session</td>
+</tr>
+<tr>
+<td>Same script on all three clouds</td>
+<td>Run <code>deploy.sh</code> with each cloud</td>
+<td>Works without changes to the steps</td>
+</tr>
+<tr>
+<td>Review filter accuracy</td>
+<td><code>/filter</code> on 20 reviews I label by hand</td>
+<td>At least 18 of 20 correct</td>
+</tr>
+<tr>
+<td>Live monitoring</td>
+<td>Grafana dashboard during a load test</td>
+<td>All three clouds shown, updated every 5 seconds</td>
+</tr>
+<tr>
+<td>Alerts</td>
+<td>Delete one cloud's VM during the failover test</td>
+<td>The <code>CloudDown</code> alert fires within 2 minutes</td>
+</tr>
+<tr>
+<td>Failover</td>
+<td>200 requests through <code>client.py</code>, AWS VM deleted halfway</td>
+<td>At least 99 % succeed</td>
+</tr>
+<tr>
+<td>Security</td>
+<td>Calls without a password, with a wrong password, and to <code>/api/metrics</code> with the <code>client</code> account</td>
+<td>All rejected with <code>401</code>; <code>/api/health</code> still answers</td>
+</tr>
+<tr>
+<td>History</td>
+<td>Analyze 5 reviews, restart all three containers, then open the history</td>
+<td>All 5 analyses are still listed</td>
+</tr>
+</tbody>
+</table>
+<p>Each load test runs three times per cloud. The results table reports the median of the three runs, the
+image tag (Git commit) and the VM's CPU. The server-side time shows how much of the latency is the
+network between my laptop and the cloud, which keeps the comparison fair.</p>
+<hr />
+<h2 id="10-deliverables">10. Deliverables</h2>
+<table>
+<thead>
+<tr>
+<th>Deliverable</th>
+<th>Format</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Backend (FastAPI + model + database access), frontend (web page + nginx) and the database schema, their Dockerfiles, and the tests in <code>tests/</code></td>
+<td>Code in this repository</td>
+</tr>
+<tr>
+<td>GitHub Actions workflow</td>
+<td><code>.github/workflows/</code></td>
+</tr>
+<tr>
+<td><code>deploy.sh</code> and <code>destroy.sh</code> built on <code>cmx vm</code></td>
+<td>Scripts in this repository</td>
+</tr>
+<tr>
+<td>Review filter (<code>/filter</code>) and <code>/metrics</code></td>
+<td>Part of the inference service</td>
+</tr>
+<tr>
+<td>Prometheus and Grafana setup (<code>docker-compose.yml</code>, <code>prometheus.yml</code>, <code>alerts.yml</code>, dashboard)</td>
+<td>Files in this repository, plus dashboard screenshots</td>
+</tr>
+<tr>
+<td><code>client.py</code> (multi-cloud failover)</td>
+<td>Script in this repository</td>
+</tr>
+<tr>
+<td>Results table and chart for the three clouds</td>
+<td>Markdown in this repository</td>
+</tr>
+<tr>
+<td>Contributions to <code>cmx vm</code></td>
+<td>Pull requests to cloudmesh-ai-vm</td>
+</tr>
+<tr>
+<td>Presentation</td>
+<td>In class</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="11-issues">11. Issues</h2>
+<ul>
+<li><strong>AWS is not set up yet.</strong> I still need the account and credentials, and I have not tested whether the
+  <code>aws</code> provider in <code>cmx vm</code> supports everything the deploy script needs (public IP, security group rule).
+  If not, I open the port in the AWS console and report the gap.</li>
+<li><strong>Which Chameleon code to use.</strong> <code>cmx vm</code> has two versions for Chameleon: the <code>dev2</code> branch and the
+  <code>feature/chameleon-native-chi</code> branch. I need to know which one the project should build on.</li>
+<li><strong>Chameleon clean-up gaps.</strong> <code>cmx vm delete</code> does not end the lease, and releasing a floating IP fails
+  because python-chi uses a compute call that KVM@TACC no longer supports, so IPs stay reserved.</li>
+<li><strong>Is 2 GB enough</strong> for DistilBERT, PostgreSQL and Docker together? If not, I add swap or use a smaller model.</li>
+<li><strong>The VMs are not identical</strong> (<code>t3.small</code> has 2 vCPUs, <code>m1.small</code> has 1), so the results note the
+  differences instead of treating them as a perfectly fair comparison.</li>
+<li><strong>Failover is done in the client.</strong> It is the simplest way. A load balancer in front of the clouds would
+  be more realistic, but it needs another VM. The cloud IPs also change with every deployment, so
+  <code>deploy.sh</code> has to update the client's config file and Prometheus's <code>targets.json</code> each time.</li>
+</ul>
+<hr />
+<h2 id="12-references">12. References</h2>
+<ul>
+<li>cloudmesh-ai-vm (<code>cmx vm</code>): https://github.com/cloudmesh-ai/cloudmesh-ai-vm</li>
+<li>Multipass: https://canonical.com/multipass</li>
+<li>Chameleon Cloud documentation: https://chameleoncloud.readthedocs.io</li>
+<li>Amazon EC2 documentation: https://docs.aws.amazon.com/ec2/</li>
+<li>AWS Free Tier: https://aws.amazon.com/free/</li>
+<li>FastAPI: https://fastapi.tiangolo.com</li>
+<li>nginx: https://nginx.org/en/docs/</li>
+<li>nginx Basic authentication: https://nginx.org/en/docs/http/ngx_http_auth_basic_module.html</li>
+<li>FastAPI testing: https://fastapi.tiangolo.com/tutorial/testing/</li>
+<li>Pydantic: https://docs.pydantic.dev</li>
+<li>PostgreSQL: https://www.postgresql.org/docs/</li>
+<li>psycopg: https://www.psycopg.org/psycopg3/docs/</li>
+<li>DistilBERT SST-2 model: https://huggingface.co/distilbert/distilbert-base-uncased-finetuned-sst-2-english</li>
+<li>Locust: https://locust.io</li>
+<li>Prometheus: https://prometheus.io/docs/</li>
+<li>Grafana: https://grafana.com/docs/grafana/latest/</li>
+<li>prometheus-fastapi-instrumentator: https://github.com/trallnag/prometheus-fastapi-instrumentator</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
