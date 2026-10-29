@@ -5,6 +5,16 @@
 Note:
 *  put files in `<repor>/assignments/week3/`
 
+## Assignment (10/29): Project mkdocs, Makefile, ./src, pyproject.toml
+
+* [x] a) Class directory `~/work/` with `cloudmesh-ai-common`, `cloudmesh-ai-vm` (my fork), `cloudmesh-ai-llm-mock` and `shabbir04`
+* [x] a) Project layout following `cloudmesh-ai-llm-mock`: `./src/inferscale/`, `Makefile`, `pyproject.toml` (version from `VERSION`), `./docs` (MkDocs)
+* [x] b) First part of the program: the backend API (`src/inferscale/app.py`) and the `inferscale serve` command
+  * [x] Unit tests in `tests/` with a fake model and a fake database (5 pass)
+  * [x] `make install` (`pip install -e ".[test]"`) and `make test` work
+* [x] c) No `.env` files or secrets in the repository; `.gitignore` blocks key and password files
+* [ ] d) Use the Jetstream LLM to see if it can improve the project; review every line it produces
+
 ## Week 7
 
 * [ ] Assignment W7.1: VMs via Python (libcloud) (Due Oct 15, 2026, 9am)
