@@ -54,7 +54,7 @@ Each one is checked by a test or a measurement (sections 5.9 and 9).
 
 | ID | The system must… |
 | -- | ---------------- |
-| FR-1 | Classify one review (`POST /api/predict`): return the label and score, and save the result in the database |
+| FR-1 | Classify one review (`POST /api/predict`): return the label and score (`UNCERTAIN` below an optional `min_score`), and save the result in the database |
 | FR-2 | Filter a list of reviews (`POST /api/filter`) by label and minimum score |
 | FR-3 | Show the signed-in account its recent analyses (`GET /api/history`) |
 | FR-4 | Offer a web page to analyze, filter and see the history, behind a login |
@@ -257,8 +257,9 @@ The Python environment is a `venv` with `pip`, not conda, which keeps the VMs an
 **Small, traceable images.** The `api` image installs the CPU-only build of PyTorch and downloads the model
 when the image is built. A VM then pulls an image of about 1–2 GB (PyTorch with GPU libraries would be
 several GB, too big for an 8 GB disk) and does not need Hugging Face at start-up. Each image is tagged with
-the Git commit (for example `inferscale-api:3f9c2ab`) as well as `latest`, so every result can be traced to
-the code that produced it. The packages are public, so the VMs pull them without a login.
+the version from `VERSION` (for example `inferscale-api:0.1.0`), the Git commit (for example
+`inferscale-api:3f9c2ab`) and `latest`. Every result can be traced to the code that produced it, and a bad
+release can be rolled back to the last good version on all three clouds. The packages are public, so the VMs pull them without a login.
 
 **Live monitoring with alerts.** Prometheus and Grafana run in Docker on my laptop (`docker compose up`).
 `deploy.sh` writes each cloud's IP into `targets.json`, and Prometheus reads the file again when it
@@ -420,6 +421,7 @@ Instrumentator().instrument(app).expose(app)             # adds GET /metrics
 
 class Review(BaseModel):
     text: str = Field(min_length=1, max_length=5000)
+    min_score: float | None = Field(None, ge=0, le=1)   # optional: below it the label is UNCERTAIN
 
 class Reviews(BaseModel):
     texts: list[str] = Field(min_length=1, max_length=100)
@@ -434,6 +436,8 @@ def health():
 def predict(item: Review, user: str = Header("unknown", alias="X-User"),
             classifier=Depends(get_classifier), db=Depends(get_db)):
     result = classifier(item.text, truncation=True)[0]  # e.g. {"label": "POSITIVE", "score": 0.99}
+    if item.min_score is not None and result["score"] < item.min_score:
+        result = {"label": "UNCERTAIN", "score": result["score"]}      # not confident enough
     db.execute("INSERT INTO predictions (account, text, label, score) VALUES (%s, %s, %s, %s)",
                (user, item.text, result["label"], result["score"]))   # parameters, not joined text
     return result
@@ -455,7 +459,8 @@ def history(limit: int = Query(20, ge=1, le=100), user: str = Header("unknown", 
 ```
 
 The Pydantic models check every request, so bad input gets a clear `422` error instead of crashing the
-service. `truncation=True` cuts texts that are longer than the model's limit of 512 tokens. The model and
+service. `truncation=True` cuts texts that are longer than the model's limit of 512 tokens. With the
+optional `min_score`, `/predict` answers `UNCERTAIN` when the model is not confident enough. The model and
 the database are handed to the endpoints with `Depends`, so the tests can swap in fakes (section 5.9).
 
 `/metrics` comes from the `prometheus-fastapi-instrumentator` library. It counts every request with its
@@ -532,7 +537,7 @@ All calls go to `https://<vm-ip>`, where nginx checks the login and forwards `/a
 | --------------- | ----- | ------- | -------- |
 | `GET /` | Any account | – | The web page |
 | `GET /api/health` | None | – | `{"status": "ok"}` |
-| `POST /api/predict` | Any account | `{"text": "…"}` (1–5000 characters) | `{"label": "POSITIVE", "score": 0.998}`; the result is saved |
+| `POST /api/predict` | Any account | `{"text": "…"}` (1–5000 characters), optional `"min_score": 0.8` | `{"label": "POSITIVE", "score": 0.998}`, or `UNCERTAIN` below `min_score`; the result is saved |
 | `POST /api/filter` | Any account | `{"texts": ["…"], "label": "NEGATIVE", "min_score": 0.9}` (1–100 texts) | The matching reviews with their label and score |
 | `GET /api/history?limit=20` | Any account | – | This account's last analyses: time, text, label, score |
 | `GET /api/metrics` | `owner`, `prometheus` | – | Prometheus metrics |
@@ -613,6 +618,7 @@ they run in seconds without downloading the model or starting PostgreSQL.
 | Metric | How it is measured | Target |
 | ------ | ------------------ | ------ |
 | Deploy time (`cmx vm start` → first good `/predict`) | Timer in `deploy.sh` | Under 15 minutes on each cloud |
+| Model start-up (cold start) | Timer in `deploy.sh`: `docker run` → first healthy `/api/health` | Reported per cloud |
 | Latency p50 / p95 | Locust, 60 s, 10 users (end to end), and Prometheus (time on the server only) | Reported per cloud |
 | Success rate | Locust | At least 99 % |
 | Cost per session | Provider pricing and allocation used | Under $1 per AWS session |

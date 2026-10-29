@@ -51,10 +51,18 @@ def test_predict_is_saved_and_history_shows_only_own_reviews():
     assert [h["text"] for h in history] == ["good film"]
 
 
+def test_predict_is_uncertain_below_min_score():
+    r = client.post("/predict", json={"text": "good film", "min_score": 0.99})
+    assert r.json() == {"label": "UNCERTAIN", "score": 0.95}
+    r = client.post("/predict", json={"text": "good film", "min_score": 0.9})
+    assert r.json()["label"] == "POSITIVE"
+
+
 def test_bad_input_is_rejected():
     assert client.post("/predict", json={"text": ""}).status_code == 422
     assert client.post("/filter", json={"texts": ["ok"], "label": "HAPPY"}).status_code == 422
     assert client.get("/history?limit=0").status_code == 422
+    assert client.post("/predict", json={"text": "ok", "min_score": 2}).status_code == 422
 
 
 def test_filter_keeps_only_the_chosen_label():

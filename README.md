@@ -13,7 +13,8 @@ Note:
   * [x] Unit tests in `tests/` with a fake model and a fake database (5 pass)
   * [x] `make install` (`pip install -e ".[test]"`) and `make test` work
 * [x] c) No `.env` files or secrets in the repository; `.gitignore` blocks key and password files
-* [ ] d) Use the Jetstream LLM to see if it can improve the project; review every line it produces
+* [x] d) Used the Jetstream LLM (`gemma-4-31b-it`) to review the project ([llm-review.md](llm-review.md), script `tools/llm_review.py`)
+  * [x] Reviewed all 10 suggestions: applied 3 (cold-start time, version tags, `UNCERTAIN` label), rejected or postponed 7 with reasons
 
 ## Week 7
 

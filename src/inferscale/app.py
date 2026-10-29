@@ -47,6 +47,7 @@ Instrumentator().instrument(app).expose(app)             # adds GET /metrics
 
 class Review(BaseModel):
     text: str = Field(min_length=1, max_length=5000)
+    min_score: float | None = Field(None, ge=0, le=1)   # optional: below it the label is UNCERTAIN
 
 class Reviews(BaseModel):
     texts: list[str] = Field(min_length=1, max_length=100)
@@ -61,6 +62,8 @@ def health():
 def predict(item: Review, user: str = Header("unknown", alias="X-User"),
             classifier=Depends(get_classifier), db=Depends(get_db)):
     result = classifier(item.text, truncation=True)[0]  # e.g. {"label": "POSITIVE", "score": 0.99}
+    if item.min_score is not None and result["score"] < item.min_score:
+        result = {"label": "UNCERTAIN", "score": result["score"]}      # not confident enough
     db.execute("INSERT INTO predictions (account, text, label, score) VALUES (%s, %s, %s, %s)",
                (user, item.text, result["label"], result["score"]))   # parameters, not joined text
     return result
