@@ -10,7 +10,7 @@ Note:
 * [x] a) Class directory `~/work/` with `cloudmesh-ai-common`, `cloudmesh-ai-vm` (my fork), `cloudmesh-ai-llm-mock` and `shabbir04`
 * [x] a) Project layout following `cloudmesh-ai-llm-mock`: `./src/inferscale/`, `Makefile`, `pyproject.toml` (version from `VERSION`), `./docs` (MkDocs)
 * [x] b) First part of the program: the backend API (`src/inferscale/app.py`) and the `inferscale serve` command
-  * [x] Unit tests in `tests/` with a fake model and a fake database (5 pass)
+  * [x] Unit tests in `tests/` with a fake model and a fake database (6 pass)
   * [x] `make install` (`pip install -e ".[test]"`) and `make test` work
 * [x] c) No `.env` files or secrets in the repository; `.gitignore` blocks key and password files
 * [x] d) Used the Jetstream LLM (`gemma-4-31b-it`) to review the project ([llm-review.md](llm-review.md), script `tools/llm_review.py`)
