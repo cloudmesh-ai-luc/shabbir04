@@ -29,10 +29,10 @@ Note:
   * [x] Follow-up on my issue [#48](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/issues/48#issuecomment-6179469803): `start --ip yes/no` exists on `dev2`; releasing a floating IP fails on Chameleon (python-chi gets a 404), so IPs stay reserved after `cmx vm delete`.
 * [ ] Assignment W7.2: Summary of my contribution to cm-x
   * [x] [Summary written](#w72-summary-my-contributions-to-cmx-cloudmesh-ai-vm) (below).
-  * [ ] Present it at this week's meeting.
+  * [x] Present it at this week's meeting.
 * [ ] Assignment W7.3: Project presentation
   * [x] [project.md](project.md) rewritten: one ML inference service on three clouds with `cmx vm`, how it covers Cloud Computing, DevOps and AI, three features (AI review filter, live monitoring, multi-cloud failover) and an Issues section. Not written as a proposal.
-  * [ ] Present the project in class.
+  * [x] Present the project in class.
 
 ### W7.2 Summary: My contributions to cmx (cloudmesh-ai-vm)
 
