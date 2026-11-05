@@ -1,0 +1,22 @@
+# Status
+
+## Week of Nov 5, 2026
+
+* **Jetstream LLM in Cline:** Cline 4.1.26 in VS Code is connected to the Jetstream LLM (`gemma-4-31b-it`, OpenAI-compatible API at `https://llm.jetstream-cloud.org/api`). Key and chat tested on Nov 5. Screenshot: _(to add)_
+* **Multi-cloud smoke tests** on the newest `cloudmesh-ai-vm` code (`dev3`): Multipass, Chameleon KVM@TACC and Jetstream not run yet. Results and issue links: _(to add)_
+* **Python 3.12+ (@181):** the project's `pyproject.toml` still allows 3.10 and the W4.4 venv used 3.9.6. Both still need moving to 3.12 or newer.
+* **Time and availability (@174):** reply _(link to add)_
+* **Public cloud (W7.1):** AWS is not set up yet.
+
+## Week of Oct 29, 2026
+
+* Project layout like `cloudmesh-ai-llm-mock`: [`src/inferscale/`](../src/inferscale), [`Makefile`](../Makefile), [`pyproject.toml`](../pyproject.toml), MkDocs in [`docs/`](../docs). 6 unit tests pass (`make test`).
+* Used the Jetstream LLM to review the project ([llm-review.md](../llm-review.md), script [`tools/llm_review.py`](../tools/llm_review.py)): applied 3 of its 10 suggestions, rejected or postponed 7 with reasons.
+* Added the [12-slide presentation](../docs/project/InferScale-Presentation.pdf) and extended [project.md](../docs/project/project.md) (PostgreSQL data tier, requirements, API, login security, testing plan).
+
+## Week of Oct 15, 2026 (Week 7)
+
+* Rewrote [project.md](../docs/project/project.md) for one inference service on three clouds with `cmx vm` (architecture diagram, Prometheus and Grafana monitoring, frontend tier).
+* Opened [cloudmesh-ai-vm#66](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/pull/66): `cmx vm ip assign` / `ip release`, tested on Chameleon; merged into `dev2` on Oct 19.
+* Wrote the [W7.2 summary of my cmx contributions](../README.md#w72-summary-my-contributions-to-cmx-cloudmesh-ai-vm).
+* My issues [#49](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/issues/49) and [#50](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/issues/50) were fixed (Oct 12); [#48](https://github.com/cloudmesh-ai/cloudmesh-ai-vm/issues/48) was closed on Oct 24.
