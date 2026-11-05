@@ -1,11 +1,11 @@
 # Assignment W4.4: Review Python
 
 ## 1. Virtual environment (venv, not conda)
-* Used the built-in `venv` module with the system Python (`/usr/bin/python3`, 3.9.6), not Anaconda. Conda downloads many libraries this project doesn't need and can cause low-level conflicts.
+* Used the built-in `venv` module with Python 3.13, not a conda environment. Conda downloads many libraries this project doesn't need and can cause low-level conflicts. (I first used macOS's built-in 3.9.6; the course minimum is 3.12, so I rebuilt the venv with 3.13 on Nov 5.)
 * The environment lives in `.venv/`, which is git-ignored.
 
 ```bash
-python3 -m venv .venv
+python3.13 -m venv .venv   # any Python 3.12 or newer
 source .venv/bin/activate
 pip install click
 ```
