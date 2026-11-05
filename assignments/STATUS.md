@@ -3,8 +3,11 @@
 ## Week of Nov 5, 2026
 
 * **Jetstream LLM in Cline:** Cline 4.1.26 in VS Code is connected to the Jetstream LLM (`gemma-4-31b-it`, OpenAI-compatible API at `https://llm.jetstream-cloud.org/api`). Key and chat tested on Nov 5. Screenshot: _(to add)_
-* **Multi-cloud smoke tests** on the newest `cloudmesh-ai-vm` code (`dev3`): Multipass, Chameleon KVM@TACC and Jetstream not run yet. Results and issue links: _(to add)_
-* **Python 3.12+ (@181):** the project's `pyproject.toml` still allows 3.10 and the W4.4 venv used 3.9.6. Both still need moving to 3.12 or newer.
+* **Multi-cloud smoke tests** on `cloudmesh-ai-vm` `dev3` (9732e92) with Python 3.15.2, `make multipass|chameleon|jetstream`:
+  * Multipass: **passed** (33 s).
+  * Chameleon KVM@TACC: start, list, stop, delete, images and flavors work; the key-upload step is skipped and the floating IP is not released. Issues: _(links to add)_
+  * Jetstream: the VM starts, gets a floating IP and SSH works; the lifecycle test fails because `cmx vm list` shortens long VM names. Issue: _(link to add)_
+* **Python 3.12+ (@181):** the project now requires `>=3.12` (6 tests pass on 3.13), the W4.4 venv was rebuilt with 3.13, and the class code runs on 3.15.2 as `dev3` requires.
 * **Time and availability (@174):** reply _(link to add)_
 * **Public cloud (W7.1):** AWS is not set up yet.
 
