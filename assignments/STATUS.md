@@ -2,7 +2,7 @@
 
 ## Week of Nov 5, 2026
 
-* **Jetstream LLM in Cline:** Cline 4.1.26 in VS Code is connected to the Jetstream LLM (`gemma-4-31b-it`, OpenAI-compatible API at `https://llm.jetstream-cloud.org/api`). Key and chat tested on Nov 5; screenshot to follow.
+* **Jetstream LLM in Cline:** Cline 4.1.26 in VS Code is connected to the Jetstream LLM (`gemma-4-31b-it`, OpenAI-compatible API at `https://llm.jetstream-cloud.org/api`). Key and chat tested on Nov 5 ([screenshot](images/cline-jetstream-2026-11-05.png): Cline runs a command and asks before reading a file).
 * **Multi-cloud smoke tests** on `cloudmesh-ai-vm` `dev3` (9732e92) with Python 3.15.2, `make multipass|chameleon|jetstream`:
   * Multipass: **passed** (33 s).
   * Chameleon KVM@TACC: start, list, stop, delete, images and flavors work; the key-upload step is skipped (`key_path` means the public key in cmx but the private key in the test) and the floating IP is not released (CHI 404). Issues with action plans to be filed after class.
