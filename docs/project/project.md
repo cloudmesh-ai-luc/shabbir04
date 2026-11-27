@@ -174,7 +174,7 @@ project uses Jetstream. `make deploy CLOUD=chameleon` still works if Chameleon h
 | **How the service is reached** | The VM's local IP | Floating IP, assigned by `cmx vm start` | The instance's public IP (no paid Elastic IP: `cmx vm start --noip`) |
 | **Port 443 (HTTPS, frontend tier)** | Open by default | Security group `inferscale-shabbir04-https`: port 443 from my IP only, made with `cmx vm security-group` | Security group `inferscale`: ports 22 and 443 from my IP only |
 | **Special step** | None | `cmx vm delete` keeps the floating IP, so `make destroy` releases it | Region `us-east-2` only (my account's organization policy blocks EC2 in the other regions); delete the instance after every session |
-| **Status** | `cmx vm` VM lifecycle tested; all three containers tested with Compose (Nov 26) | `make deploy`, `start`, `demo` and `destroy` tested (Nov 26) | `start`, `run`, `delete`, Docker build and `make up` tested (Nov 26) |
+| **Status** | `make deploy`, `start`, `demo`, `stop` and `destroy` tested (Nov 26) | `make deploy`, `start`, `demo` and `destroy` tested (Nov 26) | `start`, `run`, `delete`, Docker build and `make up` tested (Nov 26) |
 
 **One command per step, the same on every cloud.** From my laptop, in the `cmx` virtual environment:
 
@@ -296,6 +296,11 @@ up: `cmx vm run` passes the public key file to `ssh -i` (#131), so the private k
 (`FloatingIP` on Jetstream, `ip` on Multipass), so `deploy.sh` accepts both. `make destroy` then saved
 the container logs and a database export (22 predictions) to `results/jetstream/`, deleted the VM and
 released the floating IP; afterwards the project had no server and no floating IP left.
+
+**The same commands on Multipass (Nov 26).** `make deploy CLOUD=multipass` took 3 minutes, `make start`
+answered after 32 seconds and `make demo` gave the same results. `make stop` left no container running;
+`make start` answered again after 16 seconds with the history kept, and `make destroy` saved the logs and
+the database and deleted the VM.
 
 **Web tier test on Multipass (Nov 26).** With all three containers (`web` image 90 MB):
 
