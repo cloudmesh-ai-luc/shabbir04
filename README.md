@@ -1,6 +1,58 @@
-# shabbir04
+# InferScale (shabbir04)
 
 [![ci](https://github.com/cloudmesh-ai-luc/shabbir04/actions/workflows/ci.yml/badge.svg)](https://github.com/cloudmesh-ai-luc/shabbir04/actions/workflows/ci.yml)
+
+**One ML inference service on three clouds, deployed with `cmx vm`.** A sentiment-analysis model
+(DistilBERT) behind a FastAPI REST API and a small web page, with each user's history in PostgreSQL.
+The same three containers run on **Multipass** (local), **Jetstream** (OpenStack) and **AWS EC2**.
+
+* **Report and documentation:** [cloudmesh-ai-luc.github.io/shabbir04](https://cloudmesh-ai-luc.github.io/shabbir04/)
+  (source: [docs/project/project.md](docs/project/project.md))
+* **Course:** COMP 488 Cloud Computing, DevOps and AI, Loyola University Chicago, Fall 2026
+
+## Quick start
+
+On the laptop, with [cloudmesh-ai-vm](https://github.com/cloudmesh-ai/cloudmesh-ai-vm) (`cmx`) set up for the cloud:
+
+```bash
+make passwords                # account passwords, kept in ~/.config/inferscale (never in Git)
+make deploy  CLOUD=jetstream  # VM, Docker, code, certificate, images (multipass | jetstream | aws)
+make start   CLOUD=jetstream  # the service answers on https://<ip>
+make demo    CLOUD=jetstream  # example requests
+make monitor                  # Prometheus + Grafana for every deployed cloud
+make load    CLOUD=jetstream  # load test (Locust)
+make destroy CLOUD=jetstream  # save logs and the database, delete the VM
+```
+
+`make help` lists every command. For development: `make` installs the project and runs the tests.
+
+## Repository layout
+
+| Path | What it is |
+| ---- | ---------- |
+| `src/inferscale/` | The API (FastAPI + DistilBERT + PostgreSQL) and the `inferscale` command |
+| `tests/` | Unit tests (fake model and fake database) |
+| `Dockerfile`, `web/`, `compose.yaml` | The `api` image, the `web` image (nginx + page) and the three containers |
+| `deploy.sh`, `monitor.sh`, `Makefile` | Deployment and monitoring with `cmx vm` |
+| `monitoring/` | Prometheus configuration, alert rules and the Grafana dashboard |
+| `tools/` | `client.py` (multi-cloud failover), `loadtest.py` (Locust), `cmx.sh` (shared helpers) |
+| `.github/workflows/` | `ci.yml` (tests and security scans), `publish.yml` (the website) |
+| `docs/` | The MkDocs website; the report is `docs/project/project.md` |
+| `assignments/` | The weekly course assignments |
+
+## Results (Nov 27)
+
+| Cloud | Median response | p95 | Failed requests |
+| ----- | --------------- | --- | --------------- |
+| Multipass | 31 ms | 73 ms | 0 |
+| Jetstream | 99 ms | 210 ms | 0 |
+| AWS | 140 ms | 290 ms | 0 |
+
+4,706 requests, none failed; failover kept 200 of 200 requests working with AWS down.
+
+---
+
+# Course log
 
 *  Accounts: [Piazza account post](https://piazza.com/class/mt5rkdsycb31c3/post/24)
 
@@ -15,7 +67,7 @@ Note:
   * [x] Unit tests in `tests/` with a fake model and a fake database (6 pass)
   * [x] `make install` (`pip install -e ".[test]"`) and `make test` work
 * [x] c) No `.env` files or secrets in the repository; `.gitignore` blocks key and password files
-* [x] d) Used the Jetstream LLM (`gemma-4-31b-it`) to review the project ([llm-review.md](llm-review.md), script `tools/llm_review.py`)
+* [x] d) Used the Jetstream LLM (`gemma-4-31b-it`) to review the project ([llm-review.md](assignments/llm-review/llm-review.md), script [`llm_review.py`](assignments/llm-review/llm_review.py))
   * [x] Reviewed all 10 suggestions: applied 3 (cold-start time, version tags, `UNCERTAIN` label), rejected or postponed 7 with reasons
 
 ## Week 7
