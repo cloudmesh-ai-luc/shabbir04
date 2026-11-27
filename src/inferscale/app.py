@@ -12,7 +12,7 @@ from prometheus_fastapi_instrumentator import Instrumentator
 from transformers import pipeline
 
 MODEL = "distilbert/distilbert-base-uncased-finetuned-sst-2-english"
-# the password comes from /etc/inferscale/db.env on the VM, never from Git
+# the password comes from db.env, made on the VM by `make up`, never from Git
 DB_URL = f"postgresql://inferscale:{os.environ.get('POSTGRES_PASSWORD', '')}@db:5432/inferscale"
 SCHEMA = """CREATE TABLE IF NOT EXISTS predictions (
     id SERIAL PRIMARY KEY, created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
