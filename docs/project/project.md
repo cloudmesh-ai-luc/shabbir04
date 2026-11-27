@@ -164,12 +164,12 @@ Free plan credits.
 | - | ----- | --------- | ------ |
 | **Cloud** | Multipass on my Mac | Chameleon KVM@TACC | AWS EC2 |
 | **`cmx vm` provider** | `multipass` | `chameleon` | `aws` |
-| **VM size** | 2 vCPU, 4 GB, 20 GB disk (set in `~/.config/cloudmesh/clouds.yaml`) | `m1.small` (1 vCPU, 2 GB) | `t3.small` (2 vCPU, 2 GB) |
-| **OS image** | Ubuntu 24.04 | CC-Ubuntu22.04 | Ubuntu 24.04 |
-| **How the service is reached** | The VM's local IP | Floating IP | The instance's public IP |
-| **Port 443 (HTTPS, frontend tier)** | Open by default | Rule added with `cmx vm security-group` | Rule in the instance's security group |
-| **Special step** | None | `cmx vm start` creates a lease; end the lease after `cmx vm delete` | Delete the instance after every session |
-| **Status** | `cmx vm` VM lifecycle tested; `api` + `db` containers tested with Compose (Nov 26) | `start`, `list`, `ip assign`, `delete` tested (Oct 14) | Account created; credentials not set up yet |
+| **VM size** | 2 vCPU, 4 GB, 20 GB disk (set in `~/.config/cloudmesh/clouds.yaml`) | `m1.small` (1 vCPU, 2 GB) | `t4g.small` (2 vCPU, 2 GB, ARM Graviton, free-tier eligible; 8 GB disk) |
+| **OS image** | Ubuntu 24.04 (ARM, like my Mac) | CC-Ubuntu22.04 | Ubuntu 24.04 ARM (`ami-09c4af6de8b9844f6`) |
+| **How the service is reached** | The VM's local IP | Floating IP | The instance's public IP (no paid Elastic IP: `cmx vm start --noip`) |
+| **Port 443 (HTTPS, frontend tier)** | Open by default | Rule added with `cmx vm security-group` | Security group `inferscale`: ports 22 and 443 from my IP only |
+| **Special step** | None | `cmx vm start` creates a lease; end the lease after `cmx vm delete` | Region `us-east-2` only (my account's organization policy blocks EC2 in the other regions); delete the instance after every session |
+| **Status** | `cmx vm` VM lifecycle tested; all three containers tested with Compose (Nov 26) | `start`, `list`, `ip assign`, `delete` tested (Oct 14) | `start`, `run`, `delete`, Docker build and `make up` tested (Nov 26) |
 
 **The steps `deploy.sh` runs on every cloud** (simplified; section 5.7 adds the error handling)**:**
 
@@ -180,15 +180,15 @@ cmx vm list                                # shows the VM and its IP
 cmx vm run inferscale "sudo apt-get update && sudo apt-get install -y docker.io docker-compose-v2 make && \
   sudo usermod -aG docker ubuntu"          # Ubuntu's own packages, no script piped into sh
 cmx vm run inferscale "git clone --depth 1 https://github.com/cloudmesh-ai-luc/shabbir04.git inferscale"
-cmx vm run inferscale "sudo mkdir -p /etc/inferscale/web && cd /etc/inferscale/web && \
-  sudo openssl req -x509 -newkey rsa:2048 -nodes -days 7 -subj /CN=<ip> \
-       -addext subjectAltName=IP:<ip> -keyout tls.key -out tls.crt && \
-  echo <htpasswd-as-base64> | base64 -d | sudo tee htpasswd >/dev/null && \
-  echo <metrics-htpasswd-as-base64> | base64 -d | sudo tee metrics.htpasswd >/dev/null && \
-  sudo chown -R 101 /etc/inferscale/web"    # 101 is the nginx user in the web image
-cmx vm run inferscale "cd inferscale && make up"   # makes db.env (random password) on the VM, then docker compose up -d
+cmx vm run inferscale "cd inferscale && make certs IP=<ip>"   # certificate made on the VM; the key never leaves it
+make passwords                             # on my laptop: passwords stay there, only their hashes go to the VM
+cmx vm run inferscale "cd inferscale/secrets && \
+  echo <htpasswd-as-base64> | base64 -d > htpasswd && \
+  echo <metrics-htpasswd-as-base64> | base64 -d > metrics.htpasswd"
+cmx vm run inferscale "cd inferscale && make image && make up"   # makes db.env (random password) on the VM, then docker compose up -d
 openssl s_client -connect <ip>:443 </dev/null | openssl x509 > ~/.config/inferscale/certs/chameleon.pem
-curl -f --cacert ~/.config/inferscale/certs/chameleon.pem https://<ip>/api/health   # smoke test
+curl -f -u client:"$(cat ~/.config/inferscale/client.password)" \
+     --cacert ~/.config/inferscale/certs/chameleon.pem https://<ip>/api/health   # smoke test
 locust -f loadtest.py --headless -u 10 -r 2 -t 60s --host https://<ip>
 cmx vm delete inferscale                   # Chameleon: then delete the lease
 ```
@@ -266,6 +266,25 @@ good version on all three clouds. The packages are public, so the VMs pull them 
 VM is enough. The history survived `make down` and `make up`, and ports 8000 and 5432 could not be
 reached from outside the VM.
 
+**First test on AWS (Nov 26).** The same steps on a `t4g.small` VM made with `cmx vm start --noip`:
+`make image` took 171 seconds, `make up` was healthy after 23 seconds and a prediction took about 57 ms.
+The 8 GB disk was 90% full after the build (77% after `docker builder prune`), so it fits, but only just.
+The VM was deleted afterwards, with no disk or IP left behind.
+
+**Web tier test on Multipass (Nov 26).** With all three containers (`web` image 90 MB):
+
+| Check | Result |
+| ----- | ------ |
+| No login, wrong password | `401` on the page and on every `/api/` path |
+| Certificate | Made on the VM for its IP; `curl` without the saved certificate rejects the server |
+| TLS | TLS 1.1 refused; TLS 1.3 with HTTP/2 |
+| Open ports from outside | Only 443 (80, 8000, 5432, 8080 and 8081 closed) |
+| `demo` sends `X-User: owner` | Ignored: the review is saved under `demo`, and `owner` does not see it |
+| `/api/metrics` | `owner` and `prometheus` get `200`; `demo` and `client` get `401`; `prometheus` gets `401` everywhere else |
+| Rate limit (300 requests, 30 at a time) | 135 answered, 165 refused with `429` |
+| Container users | `web` runs as `nginx`, `api` as `app` |
+| Prediction through nginx, HTTPS and login | About 26 ms (22 ms without nginx) |
+
 **Live monitoring with alerts.** Prometheus and Grafana run in Docker on my laptop (`docker compose up`).
 `deploy.sh` writes each cloud's IP into `targets.json`, and Prometheus reads the file again when it
 changes. Prometheus collects `/api/metrics` through the frontend tier of every cloud every 5 seconds and
@@ -331,27 +350,35 @@ to see the last 20 reviews this account analyzed. The browser asks for a user na
 request rate and passes API calls to the backend:
 
 ```nginx
-# nginx config in the web image (nginx's unprivileged image, runs as a normal user)
+# web/nginx.conf (shortened); nginx's unprivileged image runs as the normal user nginx
 limit_req_zone $binary_remote_addr zone=perip:10m rate=50r/s;
+limit_req_status 429;
+server_tokens off;                                        # hide the nginx version
+resolver 127.0.0.11 valid=10s;                            # Docker's DNS: finds api again after a restart
 
 server {
-    listen 8443 ssl;                                       # published as port 443
+    listen 8443 ssl;                                      # published as port 443
+    http2 on;
     ssl_certificate     /etc/nginx/secrets/tls.crt;
     ssl_certificate_key /etc/nginx/secrets/tls.key;
-    limit_req zone=perip burst=100 nodelay;               # too many requests -> 429
-    limit_req_status 429;
+    ssl_protocols       TLSv1.2 TLSv1.3;
     auth_basic           "InferScale";
-    auth_basic_user_file /etc/nginx/secrets/htpasswd;     # SHA-512 hashes, no plain passwords
+    auth_basic_user_file /etc/nginx/secrets/htpasswd;    # bcrypt hashes, no plain passwords
+    limit_req zone=perip burst=100 nodelay;              # too many requests -> 429
+    add_header Content-Security-Policy "default-src 'self'; frame-ancestors 'none'" always;
+    # (also X-Content-Type-Options, X-Frame-Options and Referrer-Policy)
 
-    location /             { root /usr/share/nginx/html; }       # the web page
-    location /api/ {                                              # forward to the backend tier
-        proxy_pass http://api:8000/;
-        proxy_set_header X-User $remote_user;                     # the signed-in account
-    }
-    location = /api/health { auth_basic off; proxy_pass http://api:8000/health; }
-    location = /api/metrics {                                     # only owner and prometheus
+    set $api http://api:8000;
+    location / { root /usr/share/nginx/html; try_files $uri /index.html; }   # the web page
+    location ^~ /api/metrics {                                                # only owner and prometheus
         auth_basic_user_file /etc/nginx/secrets/metrics.htpasswd;
-        proxy_pass http://api:8000/metrics;
+        rewrite ^/api/(.*)$ /$1 break;
+        proxy_pass $api;
+    }
+    location /api/ {                                                          # forward to the backend tier
+        rewrite ^/api/(.*)$ /$1 break;
+        proxy_pass $api;
+        proxy_set_header X-User $remote_user;   # the signed-in account; replaces any X-User the client sends
     }
 }
 ```
@@ -484,9 +511,15 @@ list that I create, so no sign-up page is needed (the database stores analyses, 
 | `client` | `client.py` and Locust | Web page, API |
 | `prometheus` | Prometheus on my laptop | Metrics only |
 
-- **Passwords** are 24 random characters (`openssl rand -base64 24`) and live only on my laptop in
-  `~/.config/inferscale/` (file mode 600, outside Git). The VM receives only SHA-512 hashes
-  (`openssl passwd -6`), so the passwords themselves are never stored on a cloud.
+- **Passwords** are 24 random characters (`openssl rand -base64 24`), made by `make passwords`, and live
+  only on my laptop in `~/.config/inferscale/` (files 600, folder 700, outside Git). The VM receives only
+  bcrypt hashes (`htpasswd -B`, built into macOS), so the passwords themselves are never stored on a
+  cloud. The bcrypt cost is 5, not higher: nginx checks the hash on every request, and a 24-character
+  random password cannot be guessed anyway, so a slow hash would only slow down the service.
+- **Browser protections.** nginx sends a Content-Security-Policy (only scripts from the site itself),
+  forbids framing (`X-Frame-Options: DENY`), turns off MIME sniffing and hides its version. The page
+  writes results with `textContent`, never `innerHTML`, so the text of a review cannot inject HTML.
+  Only TLS 1.2 and 1.3 are accepted.
 - **HTTPS.** `deploy.sh` creates a self-signed certificate for the VM's IP. My laptop saves it the first
   time it connects and checks it on every later call, so a fake server is rejected. Browsers show a
   warning once, because no authority signed the certificate; a free Let's Encrypt certificate would need
@@ -497,8 +530,8 @@ list that I create, so no sign-up page is needed (the database stores analyses, 
   reached only through nginx on the internal Docker network. Every VM is deleted after each session.
 - **Containers run as normal users**, not root: `web` uses nginx's unprivileged image (port 8443 inside
   the container) and `api` runs as the user `app`.
-- **No secrets in Git.** Cloud credentials and passwords stay in `~/.config/`. `.gitignore` blocks `.env`,
-  `*.pem`, `*.key`, `*.password`, `id_*` and `clouds.yaml`, and CI runs a secret scan (gitleaks) and a
+- **No secrets in Git.** Cloud credentials and passwords stay in `~/.config/`. `.gitignore` blocks `*.env`,
+  `secrets/`, `*.pem`, `*.key`, `*.password`, `htpasswd`, `id_*` and `clouds.yaml`, and CI runs a secret scan (gitleaks) and a
   dependency check (pip-audit) on every push.
 - **Database.** PostgreSQL has no public port and only `api` can reach it. Its password is random,
   created on the VM (`db.env`, readable only by the VM's user, ignored by Git) and never leaves it. The API uses
@@ -595,7 +628,7 @@ they run in seconds without downloading the model or starting PostgreSQL.
 | -------- | --- | ---- |
 | Multipass on my Mac | Development and the local cloud | $0 |
 | Chameleon KVM@TACC, `m1.small` | 1–2 hour leases per session (project CH-817419) | Class allocation, no money |
-| AWS EC2 `t3.small` | Short sessions, deleted afterwards | About $0.02 per hour, covered by AWS Free plan credits |
+| AWS EC2 `t4g.small` (us-east-2) | Short sessions, deleted afterwards | Free-tier eligible; otherwise about $0.017 per hour, covered by AWS Free plan credits |
 | GitHub Actions and Container Registry | CI and image storage | $0 within the free limits |
 | Prometheus and Grafana (Docker on my Mac) | Monitoring and alerts | $0 (open source) |
 | PostgreSQL (official image, on each VM) | History of analyses | $0 (open source) |
@@ -668,7 +701,7 @@ network between my laptop and the cloud, which keeps the comparison fair.
 - **Chameleon clean-up gaps.** `cmx vm delete` does not end the lease, and releasing a floating IP fails
   because python-chi uses a compute call that KVM@TACC no longer supports, so IPs stay reserved.
 - **Is 2 GB enough** for DistilBERT, PostgreSQL and Docker together? If not, I add swap or use a smaller model.
-- **The VMs are not identical** (`t3.small` has 2 vCPUs, `m1.small` has 1), so the results note the
+- **The VMs are not identical** (`t4g.small` has 2 ARM vCPUs, `m1.small` has 1), so the results note the
   differences instead of treating them as a perfectly fair comparison.
 - **Failover is done in the client.** It is the simplest way. A load balancer in front of the clouds would
   be more realistic, but it needs another VM. The cloud IPs also change with every deployment, so
