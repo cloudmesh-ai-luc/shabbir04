@@ -1,0 +1,7 @@
+# Only the files the image needs; everything else (.git, .venv, docs, tests, keys, db.env) stays out
+*
+!pyproject.toml
+!VERSION
+!README.md
+!src/
+**/__pycache__

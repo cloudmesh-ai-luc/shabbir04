@@ -225,3 +225,4 @@ id_*
 clouds.yaml
 htpasswd
 *.htpasswd
+*.env

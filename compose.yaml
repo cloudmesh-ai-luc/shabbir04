@@ -1,0 +1,34 @@
+# InferScale on one VM: the api and db containers (the web container with nginx comes next)
+# Start with `make up`. The database password is in db.env, made on the VM by make, never in Git.
+name: inferscale
+
+services:
+  db:
+    image: postgres:16.16-alpine
+    restart: unless-stopped
+    env_file: db.env                  # POSTGRES_PASSWORD=...
+    environment:
+      POSTGRES_USER: inferscale
+      POSTGRES_DB: inferscale
+    volumes:
+      - pgdata:/var/lib/postgresql/data   # the history survives restarts
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U inferscale -d inferscale"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    # no ports: only the api container reaches the database, on the internal network
+
+  api:
+    build: .
+    image: inferscale-api:${VERSION:-dev}
+    restart: unless-stopped
+    env_file: db.env                  # the api needs only the database password
+    depends_on:
+      db:
+        condition: service_healthy    # start only when the database answers
+    ports:
+      - "127.0.0.1:8000:8000"         # reachable only from inside the VM; nginx replaces this later
+
+volumes:
+  pgdata:
