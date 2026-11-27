@@ -28,7 +28,7 @@
 ## Week of Oct 29, 2026
 
 * Project layout like `cloudmesh-ai-llm-mock`: [`src/inferscale/`](../src/inferscale), [`Makefile`](../Makefile), [`pyproject.toml`](../pyproject.toml), MkDocs in [`docs/`](../docs). 6 unit tests pass (`make test`).
-* Used the Jetstream LLM to review the project ([llm-review.md](../llm-review.md), script [`tools/llm_review.py`](../tools/llm_review.py)): applied 3 of its 10 suggestions, rejected or postponed 7 with reasons.
+* Used the Jetstream LLM to review the project ([llm-review.md](llm-review/llm-review.md), script [`llm_review.py`](llm-review/llm_review.py)): applied 3 of its 10 suggestions, rejected or postponed 7 with reasons.
 * Added the [12-slide presentation](../docs/project/InferScale-Presentation.pdf) and extended [project.md](../docs/project/project.md) (PostgreSQL data tier, requirements, API, login security, testing plan).
 
 ## Week of Oct 15, 2026 (Week 7)
