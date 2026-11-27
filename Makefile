@@ -1,8 +1,37 @@
 # Makefile for InferScale (shabbir04)
 
-.PHONY: all install install-model test clean docs serve certs image up down logs passwords \
+.PHONY: help all install install-model test clean docs serve certs image up down logs passwords \
         deploy start demo load stop destroy monitor monitor-stop monitor-destroy
 .DEFAULT_GOAL := all   # plain `make` installs and tests; it never deploys
+
+# The list of commands
+help:
+	@echo "InferScale: make <command>   (CLOUD is multipass, jetstream or aws; default multipass)"
+	@echo ""
+	@echo "On the laptop, the whole service on one cloud (with cmx):"
+	@echo "  deploy  CLOUD=...   create the VM, install Docker, get the code, make the secrets, build the images"
+	@echo "  start   CLOUD=...   start the containers and wait until https://<ip> answers"
+	@echo "  demo    CLOUD=...   example requests as the client account"
+	@echo "  load    CLOUD=...   load test with Locust (USERS=10 DURATION=60s); results in results/<cloud>/"
+	@echo "  stop    CLOUD=...   stop the containers; the VM and the data stay"
+	@echo "  destroy CLOUD=...   save the logs and a database export, then delete the VM"
+	@echo "  monitor             Prometheus + Grafana in a local Multipass VM for every deployed cloud"
+	@echo "  monitor-stop        stop Prometheus and Grafana (the data stays)"
+	@echo "  monitor-destroy     delete the monitoring VM"
+	@echo "  passwords           make the account passwords and their hashes in ~/.config/inferscale"
+	@echo ""
+	@echo "Development on the laptop:"
+	@echo "  all                 install and test (the default)"
+	@echo "  install             install the project with the test tools"
+	@echo "  install-model       also install PyTorch, for the real model"
+	@echo "  test                run the unit tests"
+	@echo "  docs                serve the documentation website on http://127.0.0.1:8000"
+	@echo "  clean               remove build files and caches"
+	@echo ""
+	@echo "On the VM (deploy and start run these for you):"
+	@echo "  certs IP=...        self-signed certificate for the VM's IP"
+	@echo "  image               build the api and web images"
+	@echo "  up | down | logs    start, stop or follow the three containers"
 
 # ---- On the laptop, in the cmx virtual environment: the whole service on one cloud ----
 # make deploy CLOUD=jetstream, then make start, make demo, make load, make stop and make destroy with the same CLOUD.

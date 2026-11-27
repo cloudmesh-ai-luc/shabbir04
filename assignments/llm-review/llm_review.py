@@ -3,8 +3,8 @@
 Usage (in your own terminal; the token is never written to a file):
     read -s 'JETSTREAM_API_TOKEN?Token: '; export JETSTREAM_API_TOKEN
         # token from https://llm.jetstream-cloud.org: profile icon -> Settings -> Account -> API keys
-    python tools/llm_review.py                # lists the models you can use
-    python tools/llm_review.py <model>        # writes llm-review.md
+    python assignments/llm-review/llm_review.py           # lists the models you can use
+    python assignments/llm-review/llm_review.py <model>   # writes assignments/llm-review/llm-review.md
 """
 import json
 import os
@@ -43,7 +43,7 @@ if len(sys.argv) < 2:
     print("Available models:")
     for m in call("/models").get("data", []):
         print("  ", m["id"])
-    sys.exit("Run again with one of them: python tools/llm_review.py <model>")
+    sys.exit("Run again with one of them: python assignments/llm-review/llm_review.py <model>")
 
 model = sys.argv[1]
 plan = open("docs/project/project.md", encoding="utf-8").read()
@@ -54,6 +54,6 @@ answer = call("/chat/completions", {
     "temperature": 0.3,
 })["choices"][0]["message"]["content"]
 
-with open("llm-review.md", "w", encoding="utf-8") as f:
+with open("assignments/llm-review/llm-review.md", "w", encoding="utf-8") as f:
     f.write(f"# Jetstream LLM review of project.md\n\nModel: `{model}`, {date.today()}\n\n{answer}\n")
-print("Saved llm-review.md")
+print("Saved assignments/llm-review/llm-review.md")
