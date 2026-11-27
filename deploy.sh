@@ -170,7 +170,8 @@ if [ -d inferscale ]; then git -C inferscale pull -q; else git clone -q --depth 
 echo $h2 | base64 -d | sudo tee metrics.htpasswd > /dev/null && echo HASH_OK" | grep -q HASH_OK || fail "copying the hashes failed"
 
   log "5/6 Build the images on the VM (a few minutes)"
-  run_long image "cd inferscale && make image"
+  # the build cache is not needed after the build; removing it keeps room on small disks (AWS: 8 GB)
+  run_long image "cd inferscale && make image && docker builder prune -af > /dev/null"
 
   log "6/6 Save the VM's certificate on this laptop"
   fetch_cert
