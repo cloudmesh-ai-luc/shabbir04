@@ -24,7 +24,10 @@ CERT=$CONFIG/certs/$OS_CLOUD.pem       # the VM's certificate, fetched over SSH 
 STATE=$CONFIG/clouds/$OS_CLOUD.env     # name and IP of the deployed VM
 HOURS=${HOURS:-3}                      # length of the Chameleon lease
 
-command -v cmx >/dev/null || { echo "cmx not found: activate the cloudmesh-ai-vm virtual environment first"; exit 1; }
+# cmx comes from the cloudmesh-ai-vm virtual environment; if it is not activated, use the class layout
+CMX_VENV=${CMX_VENV:-$HOME/work/cloudmesh-ai-vm/.venv}
+command -v cmx > /dev/null || { [ -x "$CMX_VENV/bin/cmx" ] && PATH="$CMX_VENV/bin:$PATH"; }
+command -v cmx >/dev/null || { echo "cmx not found: activate the cloudmesh-ai-vm virtual environment, or set CMX_VENV"; exit 1; }
 # cmx vm run passes the public key file to ssh -i on OpenStack clouds (cmx issue #131), so ssh can only
 # log in with a key from the SSH agent. Load it once per login session: ssh-add ~/.ssh/id_ed25519
 if { [ "$OS_CLOUD" = jetstream ] || [ "$OS_CLOUD" = chameleon ]; } && ! ssh-add -l >/dev/null 2>&1; then

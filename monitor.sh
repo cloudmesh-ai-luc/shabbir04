@@ -20,7 +20,10 @@ CONFIG=$HOME/.config/inferscale       # passwords, certificates and the deployed
 # Shared helpers: log, fail, run, run_long, wait_ssh, vm_ip, vm_state, put_file, INSTALL_DOCKER
 . "$HERE/tools/cmx.sh"
 
-command -v cmx >/dev/null || fail "cmx not found: activate the cloudmesh-ai-vm virtual environment first"
+# cmx comes from the cloudmesh-ai-vm virtual environment; if it is not activated, use the class layout
+CMX_VENV=${CMX_VENV:-$HOME/work/cloudmesh-ai-vm/.venv}
+command -v cmx > /dev/null || { [ -x "$CMX_VENV/bin/cmx" ] && PATH="$CMX_VENV/bin:$PATH"; }
+command -v cmx >/dev/null || fail "cmx not found: activate the cloudmesh-ai-vm virtual environment, or set CMX_VENV"
 
 running() { case $(vm_state) in Running | running) return 0 ;; *) return 1 ;; esac; }
 
