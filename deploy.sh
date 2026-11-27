@@ -3,16 +3,17 @@
 #   ./deploy.sh deploy  <cloud>   create the VM, install Docker, get the code, make the secrets, build the images
 #   ./deploy.sh start   <cloud>   start the containers and wait until the service answers over HTTPS
 #   ./deploy.sh demo    <cloud>   send example requests as the client account
+#   ./deploy.sh load    <cloud>   load test with Locust (USERS=10, DURATION=60s); results in results/<cloud>/
 #   ./deploy.sh stop    <cloud>   stop the containers (the VM and the data stay)
 #   ./deploy.sh destroy <cloud>   save the logs and a database export to results/<cloud>/, then delete the VM
-# <cloud> is multipass, jetstream or aws (chameleon also works). Or: make deploy|start|demo|stop|destroy CLOUD=<cloud>
+# <cloud> is multipass, jetstream or aws (chameleon also works). Or: make deploy|start|demo|load|stop|destroy CLOUD=<cloud>
 set -euo pipefail
 
-usage() { sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'; exit 1; }
+usage() { sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'; exit 1; }
 [ $# -eq 2 ] || usage
 ACTION=$1
 export OS_CLOUD=$2                     # every cmx command uses this cloud; clouds.yaml is not changed
-case $ACTION in deploy | start | demo | stop | destroy) ;; *) usage ;; esac
+case $ACTION in deploy | start | demo | load | stop | destroy) ;; *) usage ;; esac
 case $OS_CLOUD in multipass | jetstream | aws | chameleon) ;; *) usage ;; esac
 
 HERE=$(cd "$(dirname "$0")" && pwd)
@@ -23,7 +24,10 @@ CERT=$CONFIG/certs/$OS_CLOUD.pem       # the VM's certificate, fetched over SSH 
 STATE=$CONFIG/clouds/$OS_CLOUD.env     # name and IP of the deployed VM
 HOURS=${HOURS:-3}                      # length of the Chameleon lease
 
-command -v cmx >/dev/null || { echo "cmx not found: activate the cloudmesh-ai-vm virtual environment first"; exit 1; }
+# cmx comes from the cloudmesh-ai-vm virtual environment; if it is not activated, use the class layout
+CMX_VENV=${CMX_VENV:-$HOME/work/cloudmesh-ai-vm/.venv}
+command -v cmx > /dev/null || { [ -x "$CMX_VENV/bin/cmx" ] && PATH="$CMX_VENV/bin:$PATH"; }
+command -v cmx >/dev/null || { echo "cmx not found: activate the cloudmesh-ai-vm virtual environment, or set CMX_VENV"; exit 1; }
 # cmx vm run passes the public key file to ssh -i on OpenStack clouds (cmx issue #131), so ssh can only
 # log in with a key from the SSH agent. Load it once per login session: ssh-add ~/.ssh/id_ed25519
 if { [ "$OS_CLOUD" = jetstream ] || [ "$OS_CLOUD" = chameleon ]; } && ! ssh-add -l >/dev/null 2>&1; then
@@ -32,69 +36,8 @@ if { [ "$OS_CLOUD" = jetstream ] || [ "$OS_CLOUD" = chameleon ]; } && ! ssh-add 
 fi
 mkdir -p "$CONFIG/certs" "$CONFIG/clouds" && chmod 700 "$CONFIG"
 
-log() { printf '\n==> %s\n' "$*"; }
-fail() { echo "ERROR: $*" >&2; exit 1; }
-
-# A short command on the VM (cmx vm run stops a command after 30 seconds)
-run() { cmx vm run "$VM" "$1" 2>&1 | grep -v -i -E 'warning|^Authentication at site' || true; }
-
-# A long command on the VM: it runs in the background there, and we check every 15 seconds until it ends
-run_long() {
-  local step=$1 code="" waited=0 script
-  script=$(printf '%s\n' "set -e" "$2" | base64 | tr -d '\n')
-  run "rm -f ~/.inferscale-$step.done; echo $script | base64 -d > ~/inferscale-$step.sh; \
-nohup sh -c 'bash ~/inferscale-$step.sh > ~/inferscale-$step.log 2>&1; echo \$? > ~/.inferscale-$step.done' \
-< /dev/null > /dev/null 2>&1 & echo STARTED" | grep -q STARTED || fail "could not start '$step' on $VM"
-  while :; do
-    code=$(run "echo DONE=\$(cat ~/.inferscale-$step.done 2>/dev/null)" | sed -n 's/.*DONE=\([0-9]*\).*/\1/p')
-    [ -n "$code" ] && break
-    [ "$waited" -lt "${3:-1800}" ] || fail "'$step' did not finish on $VM in time"
-    sleep 15; waited=$((waited + 15)); printf '.'
-  done
-  echo
-  if [ "$code" != 0 ]; then
-    run "tail -20 ~/inferscale-$step.log"
-    fail "'$step' failed on $VM (exit code $code); the lines above are the end of its log"
-  fi
-}
-
-wait_ssh() {
-  for _ in $(seq 1 40); do
-    run "echo SSH_OK" | grep -q SSH_OK && return
-    sleep 10
-  done
-  fail "$VM does not answer over SSH"
-}
-
-# The VM's public IP (Multipass: its local IP), read from cmx vm info --json.
-# The providers name the field differently (Jetstream: FloatingIP, Multipass: ip), so the
-# names are compared without case and underscores.
-vm_ip() {
-  COLUMNS=1000 cmx vm info "$VM" --json 2>/dev/null | sed -n '/^{/,/^}/p' | python3 -c '
-import ipaddress, json, sys
-info = {key.replace("_", "").lower(): value for key, value in json.load(sys.stdin).items()}
-candidates = []
-for key in ("floatingip", "publicip", "publicips", "ip", "ipv4", "networks", "privateips"):
-    value = info.get(key)
-    candidates += value if isinstance(value, list) else [value]
-addresses = []
-for value in candidates:
-    try:
-        addresses.append(ipaddress.ip_address(str(value)))
-    except ValueError:
-        pass
-public = [a for a in addresses if not a.is_private]
-best = public or addresses
-print(best[0] if best else "")'
-}
-
-# The VM's state from cmx vm info (empty if it does not exist)
-vm_state() {
-  COLUMNS=1000 cmx vm info "$VM" --json 2>/dev/null | sed -n '/^{/,/^}/p' | python3 -c '
-import json, sys
-info = {key.lower(): value for key, value in json.load(sys.stdin).items()}
-print(info.get("state") or info.get("status") or "")' 2>/dev/null || true
-}
+# Shared helpers: log, fail, run, run_long, wait_ssh, vm_ip, vm_state, put_file, INSTALL_DOCKER
+. "$HERE/tools/cmx.sh"
 
 load_state() {
   [ -f "$STATE" ] || fail "no deployment on $OS_CLOUD yet: run make deploy CLOUD=$OS_CLOUD first"
@@ -114,13 +57,25 @@ EOF
 # my IP. Multipass: the VM can only be reached from this Mac. Jetstream, Chameleon: one extra security group.
 open_https() {
   case $OS_CLOUD in jetstream | chameleon) ;; *) return 0 ;; esac
-  local group=$VM-https myip
+  local group=$VM-https myip reply
   myip=$(curl -s https://checkip.amazonaws.com | tr -d '[:space:]')
-  cmx vm security-group create "$group" --description "InferScale: HTTPS from my IP only" >/dev/null 2>&1 || true
-  cmx vm security-group rule add "$group" --protocol tcp --port 443 --cidr "$myip/32" >/dev/null 2>&1 || true
-  # (already added on a second make deploy, so a failure here is only a warning)
-  cmx vm security-group add "$VM" "$group" >/dev/null 2>&1 || echo "note: $group may already be on $VM"
-  echo "Port 443 open for $myip only (security group $group)"
+  # Create the group only once: OpenStack allows several groups with the same name, and then adding
+  # the group to the VM by its name fails.
+  if ! COLUMNS=1000 cmx vm security-group list 2>/dev/null | grep -q -E "(^|[^[:alnum:]_-])$group([^[:alnum:]_-]|$)"; then
+    cmx vm security-group create "$group" --description "InferScale: HTTPS from my IP only" > /dev/null
+  fi
+  cmx vm security-group rule add "$group" --protocol tcp --port 443 --cidr "$myip/32" > /dev/null 2>&1 || true  # may exist
+  cmx vm security-group add "$VM" "$group" > /dev/null 2>&1 || true   # may already be on the VM
+  # Check that the firewall really lets this laptop through. Nothing listens on port 443 yet, so an open
+  # port answers "refused" at once, while a closed firewall drops the packets (a timeout).
+  for _ in 1 2 3 4 5 6; do
+    reply=$(nc -z -v -G 5 "$IP" 443 2>&1 || true)
+    case $reply in *refused* | *succeeded*)
+      echo "Port 443 open for $myip only (security group $group)"; return ;;
+    esac
+    sleep 5
+  done
+  fail "port 443 on $IP is still closed for $myip: check the security group $group"
 }
 
 fetch_cert() {
@@ -155,19 +110,17 @@ deploy() {
   open_https
 
   log "3/6 Install Docker and get the code (on the VM)"
-  run_long install "sudo apt-get -o DPkg::Lock::Timeout=600 update -qq
-sudo DEBIAN_FRONTEND=noninteractive apt-get -o DPkg::Lock::Timeout=600 install -y -qq docker.io docker-compose-v2 make git
-sudo usermod -aG docker \$(id -un)
+  run_long install "$INSTALL_DOCKER
 if [ -d inferscale ]; then git -C inferscale pull -q; else git clone -q --depth 1 $REPO inferscale; fi"
 
   log "4/6 Certificate (made on the VM) and password hashes (made on this laptop)"
-  run "cd inferscale && make certs IP=$IP > /dev/null 2>&1 && echo CERT_OK" | grep -q CERT_OK || fail "make certs failed"
+  run "cd inferscale && make certs IP=$IP > /dev/null 2>&1 && echo CERT''_OK" | grep -q CERT_OK || fail "make certs failed"
   make -s -C "$HERE" passwords
   local h1 h2
   h1=$(base64 < "$CONFIG/htpasswd" | tr -d '\n')
   h2=$(base64 < "$CONFIG/metrics.htpasswd" | tr -d '\n')
   run "cd inferscale/secrets && echo $h1 | base64 -d | sudo tee htpasswd > /dev/null && \
-echo $h2 | base64 -d | sudo tee metrics.htpasswd > /dev/null && echo HASH_OK" | grep -q HASH_OK || fail "copying the hashes failed"
+echo $h2 | base64 -d | sudo tee metrics.htpasswd > /dev/null && echo HASH''_OK" | grep -q HASH_OK || fail "copying the hashes failed"
 
   log "5/6 Build the images on the VM (a few minutes)"
   # the build cache is not needed after the build; removing it keeps room on small disks (AWS: 8 GB)
@@ -186,9 +139,11 @@ start() {
   fetch_cert
   log "Wait until https://$IP answers"
   for _ in $(seq 1 30); do
-    if api client -f -o /dev/null "https://$IP/api/health" 2>/dev/null; then
+    # time limits, so a closed firewall cannot stretch the 5-minute wait
+    if api client -f -o /dev/null --connect-timeout 5 --max-time 15 "https://$IP/api/health" 2>/dev/null; then
       echo "InferScale is up on $OS_CLOUD after $((SECONDS - start_time)) s: https://$IP"
       echo "Log in as demo; copy its password with: pbcopy < $CONFIG/demo.password"
+      "$HERE/monitor.sh" targets || true    # Prometheus watches this cloud from now on
       return
     fi
     sleep 10
@@ -209,6 +164,29 @@ demo() {
   echo "History of the client account:"
   api client "https://$IP/api/history?limit=3"; echo
   echo "Without a login: HTTP $(curl -s -o /dev/null -w '%{http_code}' --cacert "$CERT" "https://$IP/api/health")"
+}
+
+load() {
+  load_state
+  local locust=$HERE/.venv/bin/locust out
+  [ -x "$locust" ] || fail "Locust is not installed: run  .venv/bin/pip install -e '.[load]'  in this project"
+  out=$HERE/results/$OS_CLOUD/$(date +%Y%m%d-%H%M%S)-load
+  mkdir -p "$(dirname "$out")"
+  log "Load test on $OS_CLOUD (https://$IP): ${USERS:-10} users for ${DURATION:-60s}, from this laptop"
+  CLOUD=$OS_CLOUD "$locust" -f "$HERE/tools/loadtest.py" --headless --only-summary \
+    -u "${USERS:-10}" -r 2 -t "${DURATION:-60s}" --host "https://$IP" --csv "$out" > "$out.log" 2>&1 || true
+  [ -f "${out}_stats.csv" ] || fail "Locust wrote no results; see ${out#"$HERE"/}.log"
+  python3 - "${out}_stats.csv" "$OS_CLOUD" <<'EOF'
+import csv, sys
+rows = {r["Name"]: r for r in csv.DictReader(open(sys.argv[1]))}
+print(f"{'':16}{'requests':>9}{'failed':>8}{'req/s':>7}{'p50 ms':>8}{'p95 ms':>8}{'p99 ms':>8}")
+for name in ("/api/predict", "/api/history", "Aggregated"):
+    r = rows.get(name)
+    if r:
+        print(f"{name:16}{r['Request Count']:>9}{r['Failure Count']:>8}{float(r['Requests/s']):>7.1f}"
+              f"{r['50%']:>8}{r['95%']:>8}{r['99%']:>8}")
+EOF
+  echo "CSV files: ${out#"$HERE"/}_stats.csv (and _stats_history.csv, _failures.csv)"
 }
 
 stop() {
@@ -235,6 +213,7 @@ docker compose exec -T db pg_dump -U inferscale inferscale | gzip > ~/export-db.
   cmx vm delete "$VM"
   release_leftover_ip
   rm -f "$STATE" "$CERT"
+  "$HERE/monitor.sh" targets || true      # stop watching it, so there is no false CloudDown alert
   echo "Deleted. Check that nothing is left with: cmx vm list"
 }
 

@@ -139,7 +139,7 @@ flowchart LR
 | Web frontend (`web` container) | nginx, HTML + JavaScript | Serves the web page over HTTPS, checks the login and forwards `/api/` to the backend; the only public port (443) |
 | Backend API (`api` container) | Python, FastAPI, Hugging Face Transformers | Endpoints `GET /health`, `POST /predict`, `POST /filter`, `GET /history`, `GET /metrics`; port 8000 on the internal Docker network only |
 | Database (`db` container) | PostgreSQL 16 (official image) | Stores the history of analyses; port 5432 on the internal Docker network only; data in a Docker volume |
-| Monitoring and alerts | Prometheus, Grafana (Docker on my laptop) | Prometheus collects `/metrics` from all three clouds every 5 seconds and checks the alert rules; Grafana shows one dashboard |
+| Monitoring and alerts | Prometheus, Grafana (Docker in a local Multipass VM, `make monitor`) | Prometheus collects `/metrics` from all three clouds every 5 seconds and checks the alert rules; Grafana shows one dashboard |
 | Failover client | `client.py` | Sends each request to AWS, then Jetstream, then Multipass, until one answers |
 | Containers | Docker, Docker Compose (`compose.yaml`), GitHub Container Registry | Images `ghcr.io/cloudmesh-ai-luc/inferscale-web` and `ghcr.io/cloudmesh-ai-luc/inferscale-api` (the workflow's token can push only under the repository owner); the database uses `postgres:16.16-alpine` |
 | VM management | `cmx vm` (cloudmesh-ai-vm, `dev3` branch) | The only tool used to create, reach and delete VMs |
@@ -217,37 +217,34 @@ passwords themselves stay in `~/.config/inferscale/` on my laptop (section 5.6).
 
 **Clean-up with `make destroy`.** One command undoes a deployment: it saves the container logs and a
 database export (`pg_dump`) to `results/<cloud>/` (ignored by Git, because the nginx logs contain my IP
-address), runs `cmx vm delete`, releases the floating IP on Jetstream, and forgets the VM's IP and
-certificate. With monitoring and failover (section 5.3) it will also remove the cloud's IP from
-`targets.json` and from the client's config file, so Prometheus does not raise a false `CloudDown`
-alert and failover does not try a deleted VM.
+address), runs `cmx vm delete`, releases the floating IP on Jetstream, forgets the VM's IP and
+certificate, and tells the monitoring to stop watching the cloud, so Prometheus does not raise a false
+`CloudDown` alert and the failover client does not try a deleted VM.
 
-**Multi-cloud failover.** `deploy.sh` writes each cloud's IP into a small config file. `client.py` tries
-the clouds in order, so the service keeps answering when one cloud is down:
+**Multi-cloud failover.** `tools/client.py` sends each request to the first cloud that answers, in the
+order AWS, Jetstream, Multipass. It has no configuration of its own: it reads the deployed clouds from
+`~/.config/inferscale/clouds/<cloud>.env` (written by `make deploy`), checks each cloud's own certificate
+and logs in as `client`, using only Python's standard library. After a cloud fails, the client skips it
+for 30 seconds (a simple circuit breaker), so a dead cloud does not add a 3-second timeout to every request:
 
 ```python
-import os
-import requests
-
-CONFIG = os.path.expanduser("~/.config/inferscale")      # outside Git
-CLOUDS = ["https://<aws-ip>/api", "https://<jetstream-ip>/api", "https://<multipass-ip>/api"]
-AUTH = ("client", open(f"{CONFIG}/client.password").read().strip())
-CERTS = f"{CONFIG}/certs.pem"                            # the clouds' self-signed certificates
-
-def predict(text):
-    for url in CLOUDS:
+def predict(text, clouds, login):
+    now = time.monotonic()
+    for cloud in clouds:                      # AWS, then Jetstream, then Multipass
+        if cloud.down_until > now:
+            continue                          # failed recently: skip it for now
+        request = urllib.request.Request(f"{cloud.url}/predict", data=json.dumps({"text": text}).encode(),
+                                         headers={"Content-Type": "application/json", "Authorization": login})
         try:
-            r = requests.post(f"{url}/predict", json={"text": text},
-                              auth=AUTH, verify=CERTS, timeout=3)
-            r.raise_for_status()   # an HTTP error, e.g. a 502 from nginx, also counts as a failure
-            return r.json()
-        except requests.RequestException:
-            continue  # this cloud is down, try the next one
+            with urllib.request.urlopen(request, timeout=3, context=cloud.tls) as response:
+                return cloud.name, json.load(response)
+        except OSError:                       # no answer, a TLS error, or an HTTP error such as 502
+            cloud.down_until = now + 30
     raise RuntimeError("all clouds are down")
 ```
 
-The demo: run requests through `client.py`, delete the AWS VM with `cmx vm delete`, and the requests
-keep working through Jetstream.
+The demo: `python tools/client.py --demo 200` sends 200 predictions while `make stop CLOUD=aws` takes AWS
+down halfway, and the requests keep working through Jetstream.
 
 ### 5.3 DevOps Pipeline
 
@@ -349,44 +346,58 @@ These are single first runs, not yet the measurements of section 9.
 | Container users | `web` runs as `nginx`, `api` as `app` |
 | Prediction through nginx, HTTPS and login | About 26 ms (22 ms without nginx) |
 
-**Live monitoring with alerts.** Prometheus and Grafana run in Docker on my laptop (`docker compose up`).
-`deploy.sh` writes each cloud's IP into `targets.json`, and Prometheus reads the file again when it
-changes. Prometheus collects `/api/metrics` through the frontend tier of every cloud every 5 seconds and
-checks two alert rules:
+**Live monitoring with alerts.** `make monitor` creates a local Multipass VM (`inferscale-monitor`) with
+`cmx` and runs Prometheus 3.16 and Grafana 13.3 in Docker there (`monitoring/compose.yaml`); my Mac itself
+has no Docker. Prometheus collects `/api/metrics` through the frontend tier of every deployed cloud every
+5 seconds, over HTTPS with the `prometheus` account, checking each cloud's own certificate. `make start`
+and `make destroy` run `monitor.sh targets`, which writes one small file per deployed cloud and reloads
+Prometheus, so the clouds it watches always match the deployments:
 
 ```yaml
-# prometheus.yml
+# monitoring/prometheus/scrape/jetstream.yml (written by monitor.sh; prometheus.yml reads scrape/*.yml)
 scrape_configs:
-  - job_name: inferscale
-    scrape_interval: 5s
+  - job_name: jetstream
     scheme: https
-    metrics_path: /api/metrics   # nginx forwards it to the backend
+    metrics_path: /api/metrics                # nginx forwards it to the backend
     basic_auth:
       username: prometheus
-      password_file: /etc/prometheus/prometheus.password   # from ~/.config/inferscale, not in Git
+      password_file: /etc/prometheus-secrets/prometheus.password   # from ~/.config/inferscale, not in Git
     tls_config:
-      ca_file: /etc/prometheus/certs.pem                   # the clouds' self-signed certificates
-    file_sd_configs:
-      - files: [targets.json]    # one entry per cloud, e.g. {"targets": ["<aws-ip>:443"], "labels": {"cloud": "aws"}}
-rule_files: [alerts.yml]
+      ca_file: /etc/prometheus-secrets/jetstream.pem               # this cloud's own certificate
+    static_configs:
+      - targets: ["<jetstream-ip>:443"]
+        labels: {cloud: jetstream}
 ```
 
 ```yaml
-# alerts.yml
-groups:
-  - name: inferscale
-    rules:
-      - alert: CloudDown          # a cloud does not answer for 1 minute
-        expr: up{job="inferscale"} == 0
-        for: 1m
-      - alert: HighErrorRate      # more than 5 % of requests fail for 1 minute
-        expr: sum by (cloud) (rate(http_requests_total{status="5xx"}[1m]))
-              / sum by (cloud) (rate(http_requests_total[1m])) > 0.05
-        for: 1m
+# monitoring/prometheus/alerts.yml (shortened)
+- alert: CloudDown          # /api/metrics did not answer for 1 minute
+  expr: up == 0
+  for: 1m
+- alert: HighErrorRate      # more than 5 % of the API's answers are 5xx for 2 minutes
+  expr: sum by (cloud) (rate(http_requests_total{status="5xx"}[2m]))
+        / sum by (cloud) (rate(http_requests_total[2m])) > 0.05
+  for: 2m
 ```
 
-The Grafana dashboard has one line per cloud for requests per second, errors and p95 response time, and
-a panel that lists the alerts that are firing.
+The Grafana dashboard ("InferScale: three clouds", `monitoring/grafana/dashboards/inferscale.json`) has one
+line per cloud in six panels: which clouds are up, requests per second, response time p50 and p95,
+the share of server errors, and the api container's memory and CPU. Grafana needs a login (the admin
+password is made on my laptop and kept in `~/.config/inferscale/`), sign-up and anonymous access are off,
+and usage reporting to Grafana Labs is off. Grafana (port 3000) and Prometheus (port 9090) can only be
+reached from my Mac, because Multipass's network is private to it.
+
+**Monitoring test (Nov 27).** With InferScale on Multipass, `make start` added the cloud to Prometheus
+on its own, and the target was `up`. All six dashboard queries returned data after a few requests from
+`tools/client.py`. `make stop` took the service down: `CloudDown` fired about a minute later, and after
+`make start` it cleared at once. Grafana answered `401` without a login.
+
+The dashboard on Nov 27 with all three clouds up, during the first load test on Multipass (about 9
+requests per second, 27 ms median on the server):
+
+![Grafana: cloud status, requests per second, response time, errors and memory](images/grafana-dashboard-top.png)
+
+![Grafana: errors, memory and CPU of the api container on each cloud](images/grafana-dashboard-bottom.png)
 
 ### 5.4 The Three Tiers and the Web Page
 
@@ -681,8 +692,8 @@ they run in seconds without downloading the model or starting PostgreSQL.
 | Service | Backend (FastAPI + model, `/filter`, `/history`, `/metrics`), PostgreSQL, frontend (web page + nginx, HTTPS, login), Dockerfiles, tests | Oct 15 – Oct 29 | Done (Nov 26) |
 | CI | GitHub Actions: tests, dependency audit, secret scan, Dockerfile checks, image build and scan | Oct 29 – Nov 5 | Done (Nov 26); pushing images to a registry is still open |
 | Deploy script | `make deploy` / `start` / `demo` / `stop` / `destroy` for all three clouds | Nov 5 – Nov 12 | Done (Nov 26) |
-| Monitoring + failover | Prometheus + Grafana (dashboard, alert rules), `client.py` | Nov 12 – Nov 19 | Planned |
-| Measurements | Load tests and the failover test on the three clouds, results table | Nov 19 – Dec 3 | Planned |
+| Monitoring + failover | Prometheus + Grafana (dashboard, alert rules), `tools/client.py` | Nov 12 – Nov 19 | Done (Nov 27) |
+| Measurements | Load tests and the failover test on the three clouds, results table | Nov 19 – Dec 3 | Done (Nov 27) |
 | Final | Report and presentation | Dec 3 – Dec 10 | Planned |
 
 ---
@@ -729,14 +740,55 @@ they run in seconds without downloading the model or starting PostgreSQL.
 | Same script on all three clouds | Run `deploy.sh` with each cloud | Works without changes to the steps |
 | Review filter accuracy | `/filter` on 20 reviews I label by hand | At least 18 of 20 correct |
 | Live monitoring | Grafana dashboard during a load test | All three clouds shown, updated every 5 seconds |
-| Alerts | Delete one cloud's VM during the failover test | The `CloudDown` alert fires within 2 minutes |
-| Failover | 200 requests through `client.py`, AWS VM deleted halfway | At least 99 % succeed |
+| Alerts | Take one cloud down (`make stop`) during the failover test | The `CloudDown` alert fires within 2 minutes |
+| Failover | 200 requests through `tools/client.py`, AWS taken down halfway (`make stop CLOUD=aws`) | At least 99 % succeed |
 | Security | Calls without a password, with a wrong password, and to `/api/metrics` with the `client` account | All rejected with `401`, `/api/health` included |
 | History | Analyze 5 reviews, restart all three containers, then open the history | All 5 analyses are still listed |
 
 Each load test runs three times per cloud. The results table reports the median of the three runs, the
 image tag (Git commit) and the VM's CPU. The server-side time shows how much of the latency is the
 network between my laptop and the cloud, which keeps the comparison fair.
+
+### Results (Nov 27)
+
+All three clouds ran at the same time, with the images from commit `d7687d7` (main after the CI pull
+request). `make load CLOUD=<cloud> DURATION=60s` ran three times per cloud, one cloud after the other,
+from my Mac on the same network. Locust measures end to end (my Mac → HTTPS → nginx → API → model →
+PostgreSQL and back); Prometheus measures the time inside the api container for the same minute.
+
+| Cloud (VM, CPU) | Requests per 60 s | Failed | Requests/s | p50 | p95 | p99 | Server p50 / p95 |
+| --------------- | ----------------- | ------ | ---------- | --- | --- | --- | ---------------- |
+| Multipass (2 vCPU of my Mac's Apple M chip) | 558 | 0 | 9.4 | 31 ms | 73 ms | 90 ms | 25 / 67 ms |
+| Jetstream (`m3.tiny`, 1 x86 vCPU) | 512 | 0 | 8.7 | 99 ms | 210 ms | 270 ms | 53 / 211 ms |
+| AWS (`t4g.small`, 2 ARM Graviton vCPU) | 498 | 0 | 8.4 | 140 ms | 290 ms | 410 ms | 97 / 244 ms |
+
+Medians of three runs; over all nine runs, 4,706 requests and none failed (100 % success, target 99 %).
+
+| Deployment | `make deploy` | `make start` until HTTPS answers | Cost of the session |
+| ---------- | ------------- | -------------------------------- | ------------------- |
+| Multipass | 2–3 min | 32–33 s | $0 |
+| Jetstream | 3–8 min (creating the VM took longer the second time) | 43 s | Class allocation (`m3.tiny`, 1 service unit per hour) |
+| AWS | 4 min | 37 s | $0.00 (free-tier `t4g.small`, Free plan) |
+
+What the numbers show:
+
+- **The network adds about 45 ms** to the median for both remote clouds (my Mac to Jetstream in Indiana
+  or AWS in Ohio), and about 6 ms for the local VM.
+- **The CPU decides the server time for the AI model.** AWS's Graviton needs 97 ms per request on the
+  server, Jetstream's single x86 vCPU 53 ms, my Mac's Apple M chip 25 ms. PyTorch runs faster on these
+  x86 and Apple CPUs than on Graviton, and `t4g` instances are burstable (made for short bursts, not
+  steady load). The cheapest instance is not automatically the best one for inference; the CPU type has
+  to be tested with the real workload.
+- **The slowest requests come from the server**, not the network: on Jetstream and AWS the server p95 is
+  almost the whole end-to-end p95, because with one or two vCPUs, requests wait for each other.
+- All three clouds stayed far below nginx's rate limit and the 99 % success target at about 9 requests
+  per second; a higher load would show where each VM saturates.
+
+**Failover and alert test.** `python tools/client.py --demo 200` sent 200 predictions while all three
+clouds were running; after about 20 seconds, `make stop CLOUD=aws` took AWS down. AWS answered requests
+1 to 49, and from request 50 on Jetstream answered: **200 of 200 requests succeeded** (target 99 %), and
+none was lost during the switch. The `CloudDown` alert for AWS fired 51 seconds after `make stop` had
+finished (target: within 2 minutes), and after `make start CLOUD=aws` (36 s) it cleared again.
 
 ---
 
@@ -748,8 +800,8 @@ network between my laptop and the cloud, which keeps the comparison fair.
 | GitHub Actions workflow | `.github/workflows/` |
 | `make deploy` / `start` / `demo` / `stop` / `destroy` (`deploy.sh`), built on `cmx vm` | Makefile and script in this repository |
 | Review filter (`/filter`) and `/metrics` | Part of the inference service |
-| Prometheus and Grafana setup (`docker-compose.yml`, `prometheus.yml`, `alerts.yml`, dashboard) | Files in this repository, plus dashboard screenshots |
-| `client.py` (multi-cloud failover) | Script in this repository |
+| Prometheus and Grafana setup (`make monitor`: `monitor.sh`, `monitoring/compose.yaml`, `prometheus.yml`, `alerts.yml`, the Grafana dashboard) | Files in this repository, plus dashboard screenshots |
+| `tools/client.py` (multi-cloud failover) and `tools/loadtest.py` (`make load`, Locust) | Scripts in this repository |
 | Results table and chart for the three clouds | Markdown in this repository |
 | Contributions to `cmx vm` | Pull requests to cloudmesh-ai-vm |
 | Presentation | In class |
@@ -765,6 +817,16 @@ network between my laptop and the cloud, which keeps the comparison fair.
 - **Chameleon could not be used** (Nov 19 and 26): KVM@TACC had no free capacity, and on `dev3`
   `cmx vm start` failed for every new VM name (my `cmx` pull request fixes it). The project moved to
   Jetstream (section 5.2).
+- **Same-named security groups on Jetstream** (found Nov 27). OpenStack allows several security groups
+  with the same name. My first `deploy.sh` created `inferscale-shabbir04-https` on every deployment, so
+  the second one had two groups of that name, adding the group to the VM by name failed, and port 443
+  stayed closed. `deploy.sh` now creates the group only when it is missing, and it checks from my laptop
+  that port 443 really is reachable before it continues (an open port answers at once, a closed
+  firewall does not answer at all).
+- **Success markers in `cmx vm run` output.** When a command fails, `cmx` repeats the whole command in
+  its error message, so a check that searched the output for a word written in the command (such as
+  `SSH_OK`) could take a failure for a success. The scripts now write the markers with an empty `''` in
+  the middle (`SSH''_OK`): the VM's shell prints `SSH_OK`, but the command text never contains it.
 - **Floating IPs on Jetstream.** `cmx vm delete` does not release the floating IP, because
   `release_floating_ip()` reads libcloud's `public_ips`, which openstacksdk servers do not have.
   `make destroy` releases it until `cmx` is fixed.
@@ -772,8 +834,9 @@ network between my laptop and the cloud, which keeps the comparison fair.
 - **The VMs are not identical** (`t4g.small` has 2 ARM vCPUs and 2 GB, `m3.tiny` has 1 x86 vCPU and 3 GB), so the results note the
   differences instead of treating them as a perfectly fair comparison.
 - **Failover is done in the client.** It is the simplest way. A load balancer in front of the clouds would
-  be more realistic, but it needs another VM. The cloud IPs also change with every deployment, so
-  `deploy.sh` has to update the client's config file and Prometheus's `targets.json` each time.
+  be more realistic, but it needs another VM. The cloud IPs change with every deployment, so the client
+  reads them from the files `make deploy` writes, and `make start` and `make destroy` update Prometheus;
+  nothing has to be edited by hand.
 
 ---
 

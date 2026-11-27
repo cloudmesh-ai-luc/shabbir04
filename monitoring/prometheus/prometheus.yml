@@ -1,0 +1,12 @@
+# Prometheus for InferScale. monitor.sh writes one file per deployed cloud into scrape/ (its IP and
+# certificate, the prometheus account) and removes it when the cloud is destroyed, then reloads
+# Prometheus. So a deleted VM never raises a false CloudDown alert.
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+rule_files:
+  - alerts.yml
+
+scrape_config_files:
+  - scrape/*.yml

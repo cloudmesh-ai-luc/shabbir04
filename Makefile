@@ -1,15 +1,23 @@
 # Makefile for InferScale (shabbir04)
 
 .PHONY: all install install-model test clean docs serve certs image up down logs passwords \
-        deploy start demo stop destroy
+        deploy start demo load stop destroy monitor monitor-stop monitor-destroy
 .DEFAULT_GOAL := all   # plain `make` installs and tests; it never deploys
 
 # ---- On the laptop, in the cmx virtual environment: the whole service on one cloud ----
-# make deploy CLOUD=jetstream, then make start, make demo, make stop and make destroy with the same CLOUD.
+# make deploy CLOUD=jetstream, then make start, make demo, make load, make stop and make destroy with the same CLOUD.
 # CLOUD is multipass, jetstream or aws (chameleon also works). See deploy.sh for what each step does.
 CLOUD ?= multipass
-deploy start demo stop destroy:
+deploy start demo load stop destroy:
 	./deploy.sh $@ $(CLOUD)
+
+# Prometheus + Grafana in a local Multipass VM, watching every deployed cloud (see monitor.sh)
+monitor:
+	./monitor.sh start
+monitor-stop:
+	./monitor.sh stop
+monitor-destroy:
+	./monitor.sh destroy
 
 # The version from VERSION also tags the Docker images (inferscale-api:<version>, inferscale-web:<version>)
 VERSION := $(shell cat VERSION)
