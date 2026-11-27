@@ -141,7 +141,7 @@ flowchart LR
 | Database (`db` container) | PostgreSQL 16 (official image) | Stores the history of analyses; port 5432 on the internal Docker network only; data in a Docker volume |
 | Monitoring and alerts | Prometheus, Grafana (Docker on my laptop) | Prometheus collects `/metrics` from all three clouds every 5 seconds and checks the alert rules; Grafana shows one dashboard |
 | Failover client | `client.py` | Sends each request to AWS, then Chameleon, then Multipass, until one answers |
-| Containers | Docker, GitHub Container Registry | Images `ghcr.io/shabbir04/inferscale-web` and `ghcr.io/shabbir04/inferscale-api`; the database uses `postgres:16-alpine` |
+| Containers | Docker, Docker Compose (`compose.yaml`), GitHub Container Registry | Images `ghcr.io/cloudmesh-ai-luc/inferscale-web` and `ghcr.io/cloudmesh-ai-luc/inferscale-api` (the workflow's token can push only under the repository owner); the database uses `postgres:16.16-alpine` |
 | VM management | `cmx vm` (cloudmesh-ai-vm, `dev2` branch) | The only tool used to create, reach and delete VMs |
 | Deployment | `deploy.sh` | Runs the same `cmx vm` steps on each cloud |
 | Load test | Locust | Runs from my laptop against each cloud |
@@ -164,12 +164,12 @@ Free plan credits.
 | - | ----- | --------- | ------ |
 | **Cloud** | Multipass on my Mac | Chameleon KVM@TACC | AWS EC2 |
 | **`cmx vm` provider** | `multipass` | `chameleon` | `aws` |
-| **VM size** | 1 vCPU, 2 GB (set in `~/.config/cloudmesh/clouds.yaml`) | `m1.small` (1 vCPU, 2 GB) | `t3.small` (2 vCPU, 2 GB) |
-| **OS image** | Ubuntu 22.04 | CC-Ubuntu22.04 | Ubuntu 22.04 |
+| **VM size** | 2 vCPU, 4 GB, 20 GB disk (set in `~/.config/cloudmesh/clouds.yaml`) | `m1.small` (1 vCPU, 2 GB) | `t3.small` (2 vCPU, 2 GB) |
+| **OS image** | Ubuntu 24.04 | CC-Ubuntu22.04 | Ubuntu 24.04 |
 | **How the service is reached** | The VM's local IP | Floating IP | The instance's public IP |
 | **Port 443 (HTTPS, frontend tier)** | Open by default | Rule added with `cmx vm security-group` | Rule in the instance's security group |
 | **Special step** | None | `cmx vm start` creates a lease; end the lease after `cmx vm delete` | Delete the instance after every session |
-| **Status** | `cmx vm` VM lifecycle tested | `start`, `list`, `ip assign`, `delete` tested (Oct 14) | Account and credentials not set up yet |
+| **Status** | `cmx vm` VM lifecycle tested; `api` + `db` containers tested with Compose (Nov 26) | `start`, `list`, `ip assign`, `delete` tested (Oct 14) | Account created; credentials not set up yet |
 
 **The steps `deploy.sh` runs on every cloud** (simplified; section 5.7 adds the error handling)**:**
 
@@ -177,33 +177,28 @@ Free plan credits.
 cmx vm cloud set chameleon                 # multipass | chameleon | aws
 cmx vm start inferscale                    # Chameleon: also creates a lease (--duration 2h)
 cmx vm list                                # shows the VM and its IP
-cmx vm run inferscale "curl -fsSL https://get.docker.com | sudo sh"
+cmx vm run inferscale "sudo apt-get update && sudo apt-get install -y docker.io docker-compose-v2 make && \
+  sudo usermod -aG docker ubuntu"          # Ubuntu's own packages, no script piped into sh
+cmx vm run inferscale "git clone --depth 1 https://github.com/cloudmesh-ai-luc/shabbir04.git inferscale"
 cmx vm run inferscale "sudo mkdir -p /etc/inferscale/web && cd /etc/inferscale/web && \
   sudo openssl req -x509 -newkey rsa:2048 -nodes -days 7 -subj /CN=<ip> \
        -addext subjectAltName=IP:<ip> -keyout tls.key -out tls.crt && \
   echo <htpasswd-as-base64> | base64 -d | sudo tee htpasswd >/dev/null && \
   echo <metrics-htpasswd-as-base64> | base64 -d | sudo tee metrics.htpasswd >/dev/null && \
   sudo chown -R 101 /etc/inferscale/web"    # 101 is the nginx user in the web image
-cmx vm run inferscale "sudo sh -c 'umask 077; \
-  echo POSTGRES_PASSWORD=\$(openssl rand -hex 16) > /etc/inferscale/db.env'"   # made on the VM, never leaves it
-cmx vm run inferscale "sudo docker network create inferscale && \
-  sudo docker run -d --restart unless-stopped --name db --network inferscale \
-       --env-file /etc/inferscale/db.env -e POSTGRES_USER=inferscale \
-       -v pgdata:/var/lib/postgresql/data postgres:16-alpine && \
-  sudo docker run -d --restart unless-stopped --name api --network inferscale \
-       --env-file /etc/inferscale/db.env ghcr.io/shabbir04/inferscale-api:latest && \
-  sudo docker run -d --restart unless-stopped --name web --network inferscale -p 443:8443 \
-       -v /etc/inferscale/web:/etc/nginx/secrets:ro ghcr.io/shabbir04/inferscale-web:latest"
+cmx vm run inferscale "cd inferscale && make up"   # makes db.env (random password) on the VM, then docker compose up -d
 openssl s_client -connect <ip>:443 </dev/null | openssl x509 > ~/.config/inferscale/certs/chameleon.pem
 curl -f --cacert ~/.config/inferscale/certs/chameleon.pem https://<ip>/api/health   # smoke test
 locust -f loadtest.py --headless -u 10 -r 2 -t 60s --host https://<ip>
 cmx vm delete inferscale                   # Chameleon: then delete the lease
 ```
 
-Only the `web` container publishes a port (`-p 443:8443`). The `api` and `db` containers have no public
-port; `web` reaches `api` (`api:8000`) and `api` reaches `db` (`db:5432`) by name on the private Docker
-network `inferscale`. The database data lives in the Docker volume `pgdata`. The database password is
-random, created on the VM and never leaves it. The two login files hold only password hashes; the
+One file, `compose.yaml`, describes the three containers, so the same `make up` runs on every cloud.
+Only the `web` container publishes a port (`443:8443`). The `api` and `db` containers have no public
+port; `web` reaches `api` (`api:8000`) and `api` reaches `db` (`db:5432`) by name on the private network
+that Compose creates. `api` starts only when the database's health check (`pg_isready`) passes. The
+database data lives in the Docker volume `pgdata`. The database password is random, created on the VM
+in `db.env` (`umask 077`, ignored by Git) and never leaves it. The two login files hold only password hashes; the
 passwords themselves stay in `~/.config/inferscale/` on my laptop (section 5.6).
 
 On Chameleon a VM can also be started without an IP (`cmx vm start inferscale --ip no`) and get one
@@ -254,12 +249,22 @@ keep working through Chameleon.
 
 The Python environment is a `venv` with `pip`, not conda, which keeps the VMs and containers clean.
 
-**Small, traceable images.** The `api` image installs the CPU-only build of PyTorch and downloads the model
-when the image is built. A VM then pulls an image of about 1–2 GB (PyTorch with GPU libraries would be
-several GB, too big for an 8 GB disk) and does not need Hugging Face at start-up. Each image is tagged with
-the version from `VERSION` (for example `inferscale-api:0.1.0`), the Git commit (for example
-`inferscale-api:3f9c2ab`) and `latest`. Every result can be traced to the code that produced it, and a bad
-release can be rolled back to the last good version on all three clouds. The packages are public, so the VMs pull them without a login.
+**Small, traceable images.** The `api` image starts from `python:3.15.2-slim`, installs the CPU-only build
+of PyTorch and downloads the model when the image is built, then runs as the normal user `app`. The
+image is 2.2 GB on disk: PyTorch 860 MB, the other libraries 300 MB, the model 270 MB and the Python
+base 160 MB (PyTorch with GPU libraries alone would be several GB). The container runs with
+`HF_HUB_OFFLINE=1`, so it never needs Hugging Face at start-up. A `.dockerignore` allow-list sends only
+`pyproject.toml`, `VERSION`, `README.md` and `src/` into the build, so `.git`, `.venv`, tests and any key
+or `db.env` file can never end up in the image. Each image is tagged with the version from `VERSION`
+(for example `inferscale-api:0.1.0`), the Git commit (for example `inferscale-api:3f9c2ab`) and `latest`.
+Every result can be traced to the code that produced it, and a bad release can be rolled back to the last
+good version on all three clouds. The packages are public, so the VMs pull them without a login.
+
+**First test on Multipass (Nov 26).** `make image` and `make up` in a `cmx vm` VM (2 vCPU, 4 GB): the
+`api` container was healthy 28 seconds after `make up`, a prediction took about 22 ms on average over
+20 requests, and the containers used about 430 MB (`api`) and 25 MB (`db`) of memory, so a 2 GB cloud
+VM is enough. The history survived `make down` and `make up`, and ports 8000 and 5432 could not be
+reached from outside the VM.
 
 **Live monitoring with alerts.** Prometheus and Grafana run in Docker on my laptop (`docker compose up`).
 `deploy.sh` writes each cloud's IP into `targets.json`, and Prometheus reads the file again when it
@@ -386,7 +391,7 @@ from prometheus_fastapi_instrumentator import Instrumentator
 from transformers import pipeline
 
 MODEL = "distilbert/distilbert-base-uncased-finetuned-sst-2-english"
-# the password comes from /etc/inferscale/db.env on the VM, never from Git
+# the password comes from db.env, made on the VM by `make up`, never from Git
 DB_URL = f"postgresql://inferscale:{os.environ.get('POSTGRES_PASSWORD', '')}@db:5432/inferscale"
 SCHEMA = """CREATE TABLE IF NOT EXISTS predictions (
     id SERIAL PRIMARY KEY, created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -496,7 +501,7 @@ list that I create, so no sign-up page is needed (the database stores analyses, 
   `*.pem`, `*.key`, `*.password`, `id_*` and `clouds.yaml`, and CI runs a secret scan (gitleaks) and a
   dependency check (pip-audit) on every push.
 - **Database.** PostgreSQL has no public port and only `api` can reach it. Its password is random,
-  created on the VM (`/etc/inferscale/db.env`, readable only by root) and never leaves it. The API uses
+  created on the VM (`db.env`, readable only by the VM's user, ignored by Git) and never leaves it. The API uses
   parameterized SQL (values are passed separately, never joined into the query), which prevents SQL
   injection. nginx tells the API which account is signed in (`X-User`), so each user sees only their own
   history.
@@ -524,7 +529,8 @@ list that I create, so no sign-up page is needed (the database stores analyses, 
 - [ ] A small test image goes the whole way: GitHub Actions → GitHub Container Registry → `docker pull` on a
       VM. The workflow's built-in token can only push under the repository owner (`cloudmesh-ai-luc`), so
       the images go there or are pushed with a personal token stored as a GitHub secret.
-- [ ] The VM disks are big enough for the image (AWS gives 8 GB and Multipass 5 GB by default).
+- [ ] The VM disks are big enough for the 2.2 GB image. Multipass is set to 20 GB (done); AWS gives
+      8 GB by default, so its disk has to be raised to 20 GB.
 - [ ] Prometheus in Docker on my laptop can reach the Multipass VM's local IP.
 - [ ] The VM has a unique name in the shared Chameleon project (for example `inferscale-shabbir04`), so a
       delete can never pick another student's VM.
@@ -618,7 +624,7 @@ they run in seconds without downloading the model or starting PostgreSQL.
 | Metric | How it is measured | Target |
 | ------ | ------------------ | ------ |
 | Deploy time (`cmx vm start` → first good `/predict`) | Timer in `deploy.sh` | Under 15 minutes on each cloud |
-| Model start-up (cold start) | Timer in `deploy.sh`: `docker run` → first healthy `/api/health` | Reported per cloud |
+| Model start-up (cold start) | Timer in `deploy.sh`: `docker compose up` → first healthy `/api/health` | Reported per cloud |
 | Latency p50 / p95 | Locust, 60 s, 10 users (end to end), and Prometheus (time on the server only) | Reported per cloud |
 | Success rate | Locust | At least 99 % |
 | Cost per session | Provider pricing and allocation used | Under $1 per AWS session |
