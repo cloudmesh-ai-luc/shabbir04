@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>InferScale</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <header>
+      <h1>InferScale</h1>
+      <p>Sentiment analysis with DistilBERT</p>
+    </header>
+
+    <section>
+      <h2>Analyze one review</h2>
+      <textarea id="text" rows="3" maxlength="5000" placeholder="Type a review"></textarea>
+      <button id="analyze" type="button">Analyze</button>
+      <p id="result" class="out" aria-live="polite"></p>
+    </section>
+
+    <section>
+      <h2>Filter reviews</h2>
+      <textarea id="texts" rows="5" placeholder="One review per line"></textarea>
+      <div class="row">
+        <label>Keep
+          <select id="label">
+            <option>NEGATIVE</option>
+            <option>POSITIVE</option>
+          </select>
+        </label>
+        <label>with a score of at least
+          <input id="min" type="number" min="0" max="1" step="0.05" value="0.9">
+        </label>
+      </div>
+      <button id="filter" type="button">Filter</button>
+      <ul id="kept" class="out" aria-live="polite"></ul>
+    </section>
+
+    <section>
+      <h2>My history</h2>
+      <button id="history" type="button">Show my last 20 reviews</button>
+      <table id="rows" class="out"></table>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
