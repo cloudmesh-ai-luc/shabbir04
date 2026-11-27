@@ -227,3 +227,5 @@ htpasswd
 *.htpasswd
 *.env
 secrets/
+# exports from make destroy: the nginx logs contain my IP address
+results/
