@@ -21,7 +21,7 @@ clouds hard to compare fairly.
 **What InferScale does.** InferScale is a small three-tier machine-learning service: a web frontend (nginx and
 a small HTML/JavaScript page), a backend that serves a sentiment-analysis model (DistilBERT) through a
 FastAPI REST API, and a PostgreSQL database that keeps each user's history of analyses. Each tier is its own
-Docker container, and the same three containers run on three clouds: **Multipass** on my laptop (local), **Chameleon KVM@TACC** (OpenStack) and **AWS EC2** (public
+Docker container, and the same three containers run on three clouds: **Multipass** on my laptop (local), **Jetstream** (OpenStack) and **AWS EC2** (public
 cloud). All VMs are created, reached and deleted with one tool, **`cmx vm`** from the class project
 [cloudmesh-ai-vm](https://github.com/cloudmesh-ai/cloudmesh-ai-vm), which I also contribute to. One
 deploy script runs the same steps on every cloud, and a load test measures how each cloud performs.
@@ -39,7 +39,7 @@ requests (for example the `cmx vm ip` command).
 
 | Area | How InferScale addresses it |
 | ---- | --------------------------- |
-| **Cloud Computing** | Runs the same service as VMs (IaaS) on three different kinds of cloud: a local hypervisor, an OpenStack research cloud and a public cloud. Each VM runs a three-tier application: a public web frontend, a private model backend and a private database. Uses each cloud's networking (local IP, floating IP, public IP), security groups, Chameleon leases, and compares cost. `cmx vm` hides the differences behind one command line. **Feature: multi-cloud failover.** When one cloud is down, requests go to the next cloud. |
+| **Cloud Computing** | Runs the same service as VMs (IaaS) on three different kinds of cloud: a local hypervisor, an OpenStack research cloud and a public cloud. Each VM runs a three-tier application: a public web frontend, a private model backend and a private database. Uses each cloud's networking (local IP, floating IP, public IP), security groups and a cloud organization's region policy (AWS), and compares cost. `cmx vm` hides the differences behind one command line. **Feature: multi-cloud failover.** When one cloud is down, requests go to the next cloud. |
 | **DevOps** | GitHub flow (branches, pull requests, issues), automated tests and Docker builds with GitHub Actions, a container registry, one deploy script for all clouds, a smoke test after every deployment, and clean-up so nothing keeps running. **Feature: live monitoring with alerts.** Every VM reports its requests, errors and response time at `/metrics`. Prometheus collects them from all three clouds, Grafana shows them on one dashboard, and an alert fires when a cloud stops answering or has too many errors. |
 | **AI** | The workload is an AI model: DistilBERT sentiment analysis served for inference on CPU. The project measures how fast that model answers on each cloud. **Feature: review filter.** The model returns only the reviews with a chosen label (for example, negative) that it is confident about. |
 
@@ -58,8 +58,8 @@ Each one is checked by a test or a measurement (sections 5.9 and 9).
 | FR-2 | Filter a list of reviews (`POST /api/filter`) by label and minimum score |
 | FR-3 | Show the signed-in account its recent analyses (`GET /api/history`) |
 | FR-4 | Offer a web page to analyze, filter and see the history, behind a login |
-| FR-5 | Answer `/api/health` without a login; allow `/api/metrics` only for `owner` and `prometheus` |
-| FR-6 | Deploy and remove the service on each cloud with `deploy.sh` and `destroy.sh`, exporting the database before a VM is deleted |
+| FR-5 | Require a login for every page and API call, `/api/health` included; allow `/api/metrics` only for `owner` and `prometheus` |
+| FR-6 | Deploy and remove the service on each cloud with `make deploy` and `make destroy` (`deploy.sh`), exporting the database before a VM is deleted |
 | FR-7 | Send a request to the next cloud when one cloud fails (`client.py`) |
 | FR-8 | Monitor all three clouds with alerts, and load-test each cloud |
 
@@ -79,8 +79,8 @@ Each one is checked by a test or a measurement (sections 5.9 and 9).
 | # | Objective | Success criterion |
 | - | --------- | ----------------- |
 | 1 | Package the three tiers as containers | `/health` and `/predict` pass the tests; the web page shows a prediction; CI builds the web and api images (the database uses the official PostgreSQL image) |
-| 2 | Run the service on three clouds using `cmx vm` for all VM management | `/predict` answers on Multipass, Chameleon and AWS |
-| 3 | Automate the deployment | `./deploy.sh <cloud>` goes from no VM to a working service with one command |
+| 2 | Run the service on three clouds using `cmx vm` for all VM management | `/predict` answers on Multipass, Jetstream and AWS |
+| 3 | Automate the deployment | `make deploy` and `make start` go from no VM to a working service on any of the three clouds |
 | 4 | Measure and compare the clouds | A results table with deploy time, latency (p50/p95), success rate and cost per cloud |
 | 5 | Improve `cmx vm` where the project needs it | Small, reviewed pull requests to cloudmesh-ai-vm |
 | 6 | AI review filter | `/filter` returns only the reviews with the chosen label and a score at or above the threshold |
@@ -94,7 +94,7 @@ Each one is checked by a test or a measurement (sections 5.9 and 9).
 | In scope | Out of scope |
 | -------- | ------------ |
 | Three tiers: web frontend (nginx + HTML/JavaScript), backend (FastAPI + DistilBERT) and a PostgreSQL database, each in its own container | Training or fine-tuning models |
-| Three clouds: Multipass, Chameleon KVM@TACC, AWS EC2 | Kubernetes and autoscaling (dropped to keep the project simple) |
+| Three clouds: Multipass, Jetstream, AWS EC2 | Kubernetes and autoscaling (dropped to keep the project simple) |
 | Deploy script built on `cmx vm` | GPUs |
 | CI with GitHub Actions | High availability and 24/7 monitoring (monitoring runs only during my sessions) |
 | Load test and comparison of the three clouds | Other public clouds (Azure, GCP) |
@@ -109,7 +109,7 @@ Each one is checked by a test or a measurement (sections 5.9 and 9).
 
 ### 5.1 Architecture
 
-![InferScale architecture: GitHub Actions builds the web and api images; cmx vm on my laptop runs all three tiers on Multipass, Chameleon and AWS](images/architecture.svg)
+![InferScale architecture: GitHub Actions builds the web and api images; cmx vm on my laptop runs all three tiers on Multipass, Jetstream and AWS](images/architecture.svg)
 
 ```mermaid
 flowchart LR
@@ -121,7 +121,7 @@ flowchart LR
         PROM[Prometheus<br/>alert rules] --> GRAF[Grafana<br/>dashboard]
     end
     CMX -->|start / run / delete| MP[Multipass VM<br/>local]
-    CMX -->|start / ip assign / run / delete| CH[Chameleon KVM@TACC VM<br/>OpenStack]
+    CMX -->|start / run / delete| CH[Jetstream VM<br/>OpenStack]
     CMX -->|start / run / delete| AWS[AWS EC2 VM<br/>public cloud]
     REG -. docker pull web + api .-> MP
     REG -. docker pull .-> CH
@@ -140,58 +140,72 @@ flowchart LR
 | Backend API (`api` container) | Python, FastAPI, Hugging Face Transformers | Endpoints `GET /health`, `POST /predict`, `POST /filter`, `GET /history`, `GET /metrics`; port 8000 on the internal Docker network only |
 | Database (`db` container) | PostgreSQL 16 (official image) | Stores the history of analyses; port 5432 on the internal Docker network only; data in a Docker volume |
 | Monitoring and alerts | Prometheus, Grafana (Docker on my laptop) | Prometheus collects `/metrics` from all three clouds every 5 seconds and checks the alert rules; Grafana shows one dashboard |
-| Failover client | `client.py` | Sends each request to AWS, then Chameleon, then Multipass, until one answers |
+| Failover client | `client.py` | Sends each request to AWS, then Jetstream, then Multipass, until one answers |
 | Containers | Docker, Docker Compose (`compose.yaml`), GitHub Container Registry | Images `ghcr.io/cloudmesh-ai-luc/inferscale-web` and `ghcr.io/cloudmesh-ai-luc/inferscale-api` (the workflow's token can push only under the repository owner); the database uses `postgres:16.16-alpine` |
-| VM management | `cmx vm` (cloudmesh-ai-vm, `dev2` branch) | The only tool used to create, reach and delete VMs |
-| Deployment | `deploy.sh` | Runs the same `cmx vm` steps on each cloud |
+| VM management | `cmx vm` (cloudmesh-ai-vm, `dev3` branch) | The only tool used to create, reach and delete VMs |
+| Deployment | `make deploy` / `start` / `demo` / `stop` / `destroy` (`deploy.sh`) | Runs the same `cmx vm` steps on each cloud |
 | Load test | Locust | Runs from my laptop against each cloud |
 
 **Data tier.** Each VM runs its own PostgreSQL database in a third container. It stores every analysis from
 `/api/predict` (time, account, text, label and score), so each user can see their history. The database
 has no public port: only `api` reaches it, on the internal Docker network. Its data lives in a Docker volume,
-so it survives container restarts, and `destroy.sh` exports it (`pg_dump`) to `results/<cloud>/` before the
+so it survives container restarts, and `make destroy` exports it (`pg_dump`) to `results/<cloud>/` before the
 VM is deleted. Each cloud keeps its own history; copying data between clouds is out of scope, so failover
 still works without any data sync. Metrics, the Grafana dashboard and the load-test results stay on my
 laptop and in this repository.
 
 ### 5.2 Three Clouds and cmx vm
 
-**Why these three.** Multipass is free and fast for development. Chameleon KVM@TACC is the class
-OpenStack cloud (project CH-817419). AWS is the most widely used public cloud, and new accounts get
-Free plan credits.
+**Why these three.** Multipass is free and fast for development. Jetstream is the class OpenStack
+research cloud. AWS is the most widely used public cloud, and new accounts get Free plan credits.
+
+**Why Jetstream and not Chameleon (decided Nov 26).** I first planned Chameleon KVM@TACC. Twice
+(Nov 19 and Nov 26) it had no free capacity: the lease started, but the VM failed with "No valid host
+was found". Chameleon also needs a lease for every VM, and a failed start leaves the lease running.
+Jetstream needs no leases, has had capacity every time I used it, and `cmx` supports it well, so the
+project uses Jetstream. `make deploy CLOUD=chameleon` still works if Chameleon has capacity again.
 
 | | Local | OpenStack | Public |
 | - | ----- | --------- | ------ |
-| **Cloud** | Multipass on my Mac | Chameleon KVM@TACC | AWS EC2 |
-| **`cmx vm` provider** | `multipass` | `chameleon` | `aws` |
-| **VM size** | 2 vCPU, 4 GB, 20 GB disk (set in `~/.config/cloudmesh/clouds.yaml`) | `m1.small` (1 vCPU, 2 GB) | `t4g.small` (2 vCPU, 2 GB, ARM Graviton, free-tier eligible; 8 GB disk) |
-| **OS image** | Ubuntu 24.04 (ARM, like my Mac) | CC-Ubuntu22.04 | Ubuntu 24.04 ARM (`ami-09c4af6de8b9844f6`) |
-| **How the service is reached** | The VM's local IP | Floating IP | The instance's public IP (no paid Elastic IP: `cmx vm start --noip`) |
-| **Port 443 (HTTPS, frontend tier)** | Open by default | Rule added with `cmx vm security-group` | Security group `inferscale`: ports 22 and 443 from my IP only |
-| **Special step** | None | `cmx vm start` creates a lease; end the lease after `cmx vm delete` | Region `us-east-2` only (my account's organization policy blocks EC2 in the other regions); delete the instance after every session |
-| **Status** | `cmx vm` VM lifecycle tested; all three containers tested with Compose (Nov 26) | `start`, `list`, `ip assign`, `delete` tested (Oct 14) | `start`, `run`, `delete`, Docker build and `make up` tested (Nov 26) |
+| **Cloud** | Multipass on my Mac | Jetstream | AWS EC2 |
+| **`cmx vm` provider** | `multipass` | `jetstream` | `aws` |
+| **VM size** | 2 vCPU, 4 GB, 20 GB disk (set in `~/.config/cloudmesh/clouds.yaml`) | `m3.tiny` (1 vCPU, 3 GB) | `t4g.small` (2 vCPU, 2 GB, ARM Graviton, free-tier eligible; 8 GB disk) |
+| **OS image** | Ubuntu 24.04 (ARM, like my Mac) | Featured-Ubuntu24 (x86) | Ubuntu 24.04 ARM (`ami-09c4af6de8b9844f6`) |
+| **How the service is reached** | The VM's local IP | Floating IP, assigned by `cmx vm start` | The instance's public IP (no paid Elastic IP: `cmx vm start --noip`) |
+| **Port 443 (HTTPS, frontend tier)** | Open by default | Security group `inferscale-shabbir04-https`: port 443 from my IP only, made with `cmx vm security-group` | Security group `inferscale`: ports 22 and 443 from my IP only |
+| **Special step** | None | `cmx vm delete` keeps the floating IP, so `make destroy` releases it | Region `us-east-2` only (my account's organization policy blocks EC2 in the other regions); delete the instance after every session |
+| **Status** | `cmx vm` VM lifecycle tested; all three containers tested with Compose (Nov 26) | `make deploy`, `start`, `demo` and `destroy` tested (Nov 26) | `start`, `run`, `delete`, Docker build and `make up` tested (Nov 26) |
 
-**The steps `deploy.sh` runs on every cloud** (simplified; section 5.7 adds the error handling)**:**
+**One command per step, the same on every cloud.** From my laptop, in the `cmx` virtual environment:
 
 ```bash
-cmx vm cloud set chameleon                 # multipass | chameleon | aws
-cmx vm start inferscale                    # Chameleon: also creates a lease (--duration 2h)
-cmx vm list                                # shows the VM and its IP
-cmx vm run inferscale "sudo apt-get update && sudo apt-get install -y docker.io docker-compose-v2 make && \
-  sudo usermod -aG docker ubuntu"          # Ubuntu's own packages, no script piped into sh
-cmx vm run inferscale "git clone --depth 1 https://github.com/cloudmesh-ai-luc/shabbir04.git inferscale"
-cmx vm run inferscale "cd inferscale && make certs IP=<ip>"   # certificate made on the VM; the key never leaves it
-make passwords                             # on my laptop: passwords stay there, only their hashes go to the VM
-cmx vm run inferscale "cd inferscale/secrets && \
-  echo <htpasswd-as-base64> | base64 -d > htpasswd && \
-  echo <metrics-htpasswd-as-base64> | base64 -d > metrics.htpasswd"
-cmx vm run inferscale "cd inferscale && make image && make up"   # makes db.env (random password) on the VM, then docker compose up -d
-openssl s_client -connect <ip>:443 </dev/null | openssl x509 > ~/.config/inferscale/certs/chameleon.pem
-curl -f -u client:"$(cat ~/.config/inferscale/client.password)" \
-     --cacert ~/.config/inferscale/certs/chameleon.pem https://<ip>/api/health   # smoke test
-locust -f loadtest.py --headless -u 10 -r 2 -t 60s --host https://<ip>
-cmx vm delete inferscale                   # Chameleon: then delete the lease
+make deploy  CLOUD=jetstream   # cmx vm start, Docker, git clone, certificate, password hashes, make image
+make start   CLOUD=jetstream   # make up on the VM, then wait until https://<ip>/api/health answers
+make demo    CLOUD=jetstream   # example requests as the client account
+make stop    CLOUD=jetstream   # make down on the VM; the VM and the data stay
+make destroy CLOUD=jetstream   # logs and a pg_dump to results/jetstream/, then cmx vm delete
 ```
+
+`deploy.sh` does the work, and it reaches the clouds only through `cmx vm`:
+
+```bash
+export OS_CLOUD=jetstream                          # cmx uses this cloud; clouds.yaml is not changed
+cmx vm start inferscale-shabbir04                  # AWS: --noip; Chameleon: --duration 3h
+cmx vm info inferscale-shabbir04 --json            # the VM's IP
+cmx vm security-group create inferscale-shabbir04-https          # Jetstream: port 443 from my IP only
+cmx vm security-group rule add inferscale-shabbir04-https --protocol tcp --port 443 --cidr <my-ip>/32
+cmx vm security-group add inferscale-shabbir04 inferscale-shabbir04-https
+cmx vm run inferscale-shabbir04 "..."             # apt docker.io, git clone, make certs, make image, make up
+cmx vm delete inferscale-shabbir04
+```
+
+On the VM it installs Docker from Ubuntu's own packages (no script piped into `sh`), clones this
+repository, makes the certificate (`make certs`; the private key never leaves the VM) and copies the
+two password-hash files that `make passwords` made on my laptop. The VM's certificate comes back to my
+laptop over SSH (`cmx vm run ... cat`), so every later call checks it without trusting the network.
+`cmx vm run` stops a command after 30 seconds, so the long steps (installing Docker, building the
+images) run in the background on the VM, and `deploy.sh` checks every 15 seconds until they end.
+Passwords are passed to `curl` on standard input, never on the command line.
 
 One file, `compose.yaml`, describes the three containers, so the same `make up` runs on every cloud.
 Only the `web` container publishes a port (`443:8443`). The `api` and `db` containers have no public
@@ -201,12 +215,12 @@ database data lives in the Docker volume `pgdata`. The database password is rand
 in `db.env` (`umask 077`, ignored by Git) and never leaves it. The two login files hold only password hashes; the
 passwords themselves stay in `~/.config/inferscale/` on my laptop (section 5.6).
 
-On Chameleon a VM can also be started without an IP (`cmx vm start inferscale --ip no`) and get one
-later with `cmx vm ip assign inferscale`.
-
-**Clean-up with `destroy.sh <cloud>`.** One script undoes a deployment: it saves the container logs
-(`docker logs`) and a database export (`pg_dump`) to `results/<cloud>/`, runs `cmx vm delete inferscale`, ends the lease on
-Chameleon, and removes the cloud's IP from `targets.json` and from the client's config file. Prometheus then does not raise a false `CloudDown` alert, and failover does not try a deleted VM.
+**Clean-up with `make destroy`.** One command undoes a deployment: it saves the container logs and a
+database export (`pg_dump`) to `results/<cloud>/` (ignored by Git, because the nginx logs contain my IP
+address), runs `cmx vm delete`, releases the floating IP on Jetstream, and forgets the VM's IP and
+certificate. With monitoring and failover (section 5.3) it will also remove the cloud's IP from
+`targets.json` and from the client's config file, so Prometheus does not raise a false `CloudDown`
+alert and failover does not try a deleted VM.
 
 **Multi-cloud failover.** `deploy.sh` writes each cloud's IP into a small config file. `client.py` tries
 the clouds in order, so the service keeps answering when one cloud is down:
@@ -216,7 +230,7 @@ import os
 import requests
 
 CONFIG = os.path.expanduser("~/.config/inferscale")      # outside Git
-CLOUDS = ["https://<aws-ip>/api", "https://<chameleon-ip>/api", "https://<multipass-ip>/api"]
+CLOUDS = ["https://<aws-ip>/api", "https://<jetstream-ip>/api", "https://<multipass-ip>/api"]
 AUTH = ("client", open(f"{CONFIG}/client.password").read().strip())
 CERTS = f"{CONFIG}/certs.pem"                            # the clouds' self-signed certificates
 
@@ -233,7 +247,7 @@ def predict(text):
 ```
 
 The demo: run requests through `client.py`, delete the AWS VM with `cmx vm delete`, and the requests
-keep working through Chameleon.
+keep working through Jetstream.
 
 ### 5.3 DevOps Pipeline
 
@@ -245,7 +259,7 @@ keep working through Chameleon.
 | Deploy | `deploy.sh` + `cmx vm` | Creates the VM and starts the three containers on the chosen cloud |
 | Verify | `curl /api/health`, Locust | Checks the service through the frontend tier, then measures latency |
 | Monitor | Prometheus + Grafana | Shows live requests, errors and response time for all three clouds, and raises an alert when a cloud is down or has too many errors |
-| Clean up | `cmx vm delete` | Removes the VM (and the Chameleon lease) after each session |
+| Clean up | `make destroy` + `cmx vm delete` | Saves logs and the database, then removes the VM (and on Jetstream its floating IP) after each session |
 
 The Python environment is a `venv` with `pip`, not conda, which keeps the VMs and containers clean.
 
@@ -270,6 +284,18 @@ reached from outside the VM.
 `make image` took 171 seconds, `make up` was healthy after 23 seconds and a prediction took about 57 ms.
 The 8 GB disk was 90% full after the build (77% after `docker builder prune`), so it fits, but only just.
 The VM was deleted afterwards, with no disk or IP left behind.
+
+**First full deployment on Jetstream (Nov 26).** `make deploy CLOUD=jetstream` made the VM (`m3.tiny`)
+with a floating IP, opened port 443 for my IP, installed Docker and built the images in about 3 minutes;
+`make start` had the service answering over HTTPS 43 seconds later, and `make demo` returned the
+expected labels, the filter result and the history, with `401` without a login. From my Mac over the
+internet, a prediction took about 180 ms on average (20 requests, each with a new HTTPS connection).
+Only ports 22 (SSH, from the project's `remotelogin` group) and 443 were open. Two `cmx` problems came
+up: `cmx vm run` passes the public key file to `ssh -i` (#131), so the private key must be loaded with
+`ssh-add ~/.ssh/id_ed25519`, and `cmx vm info --json` names the IP differently on each cloud
+(`FloatingIP` on Jetstream, `ip` on Multipass), so `deploy.sh` accepts both. `make destroy` then saved
+the container logs and a database export (22 predictions) to `results/jetstream/`, deleted the VM and
+released the floating IP; afterwards the project had no server and no floating IP left.
 
 **Web tier test on Multipass (Nov 26).** With all three containers (`web` image 90 MB):
 
@@ -520,8 +546,8 @@ list that I create, so no sign-up page is needed (the database stores analyses, 
   forbids framing (`X-Frame-Options: DENY`), turns off MIME sniffing and hides its version. The page
   writes results with `textContent`, never `innerHTML`, so the text of a review cannot inject HTML.
   Only TLS 1.2 and 1.3 are accepted.
-- **HTTPS.** `deploy.sh` creates a self-signed certificate for the VM's IP. My laptop saves it the first
-  time it connects and checks it on every later call, so a fake server is rejected. Browsers show a
+- **HTTPS.** `make certs` creates a self-signed certificate for the VM's IP on the VM. `deploy.sh` copies
+  it to my laptop over SSH and checks it on every later call, so a fake server is rejected. Browsers show a
   warning once, because no authority signed the certificate; a free Let's Encrypt certificate would need
   a domain name, which this project does not have.
 - **Rate limit.** nginx allows 50 requests per second from one address (bursts up to 100) and answers
@@ -550,7 +576,7 @@ list that I create, so no sign-up page is needed (the database stores analyses, 
 | Login | A wrong password or too many requests | nginx answers `401` or `429` before the request reaches the model |
 | Database | The database is still starting or goes down | At start-up `api` waits up to 30 seconds for it; later, a request that needs it gets `503`, and the `db` container restarts by itself |
 | Containers | A container crashes | Both run with `--restart unless-stopped`; `web` is restarted after `api` so nginx finds the new address |
-| `deploy.sh` | A `cmx vm` step fails (for example "No valid host" on Chameleon) | `set -euo pipefail` stops the script at the first error |
+| `deploy.sh` | A `cmx vm` step or a step on the VM fails (for example "No valid host" when a cloud is full) | `set -euo pipefail` stops the script at the first error; a failed step on the VM shows the end of its log |
 | Smoke test | The model needs 20–60 seconds to load | `curl -f` retries `/api/health` every 10 seconds for up to 5 minutes |
 | Client | A cloud is down or returns an HTTP error | `client.py` fails over to the next cloud (`raise_for_status()`) |
 | Operation | A cloud stops answering or many requests fail | The `CloudDown` and `HighErrorRate` alerts fire |
@@ -565,8 +591,8 @@ list that I create, so no sign-up page is needed (the database stores analyses, 
 - [ ] The VM disks are big enough for the 2.2 GB image. Multipass is set to 20 GB (done); AWS gives
       8 GB by default, so its disk has to be raised to 20 GB.
 - [ ] Prometheus in Docker on my laptop can reach the Multipass VM's local IP.
-- [ ] The VM has a unique name in the shared Chameleon project (for example `inferscale-shabbir04`), so a
-      delete can never pick another student's VM.
+- [x] The VM has a unique name in the shared Jetstream project (`inferscale-shabbir04`), so a delete can
+      never pick another student's VM.
 
 ### 5.8 API Reference
 
@@ -627,7 +653,7 @@ they run in seconds without downloading the model or starting PostgreSQL.
 | Resource | Use | Cost |
 | -------- | --- | ---- |
 | Multipass on my Mac | Development and the local cloud | $0 |
-| Chameleon KVM@TACC, `m1.small` | 1–2 hour leases per session (project CH-817419) | Class allocation, no money |
+| Jetstream, `m3.tiny` | Short sessions, deleted afterwards | Class allocation (service units), no money |
 | AWS EC2 `t4g.small` (us-east-2) | Short sessions, deleted afterwards | Free-tier eligible; otherwise about $0.017 per hour, covered by AWS Free plan credits |
 | GitHub Actions and Container Registry | CI and image storage | $0 within the free limits |
 | Prometheus and Grafana (Docker on my Mac) | Monitoring and alerts | $0 (open source) |
@@ -640,15 +666,15 @@ they run in seconds without downloading the model or starting PostgreSQL.
 
 | Risk | Likelihood | Impact | Mitigation |
 | ---- | ---------- | ------ | ---------- |
-| Chameleon has no free capacity ("No valid host was found") | Medium | Delay | Retry at another time; keep sessions short |
-| A Chameleon lease keeps running after `cmx vm delete` | High | Uses allocation | End the lease after every session |
+| A cloud has no free capacity ("No valid host was found", as on Chameleon twice) | Medium | Delay | Jetstream instead of Chameleon; retry at another time; keep sessions short |
+| A floating IP stays reserved after `cmx vm delete` on Jetstream | High | Uses the shared IP pool | `make destroy` releases it; fix it in `cmx` with a pull request |
 | An AWS instance is left running | Low | Cost | Delete after every session; set a billing alert |
 | The model and the database need more memory than the VM has | Medium | Service crashes | Use 2 GB VMs; keep PostgreSQL small; add swap or use a smaller model |
 | Credentials leak | Low | High | Keep them only in `~/.config/`, never in Git |
 | The failover demo needs two or three clouds running at once | Medium | More cost and allocation | Keep the demo under 30 minutes and delete everything right after |
 | A password leaks (for example the demo password) | Low | Someone else uses the service | Change it in `~/.config/inferscale/` and redeploy; change the demo password after every demo |
 | The browser warns about the self-signed certificate | High | The demo looks broken | Explain it once and accept the certificate before the demo |
-| The history is lost when a VM is deleted | Medium | Lost data | `destroy.sh` exports the database (`pg_dump`) first |
+| The history is lost when a VM is deleted | Medium | Lost data | `make destroy` exports the database (`pg_dump`) first |
 
 ---
 
@@ -681,7 +707,7 @@ network between my laptop and the cloud, which keeps the comparison fair.
 | ----------- | ------ |
 | Backend (FastAPI + model + database access), frontend (web page + nginx) and the database schema, their Dockerfiles, and the tests in `tests/` | Code in this repository |
 | GitHub Actions workflow | `.github/workflows/` |
-| `deploy.sh` and `destroy.sh` built on `cmx vm` | Scripts in this repository |
+| `make deploy` / `start` / `demo` / `stop` / `destroy` (`deploy.sh`), built on `cmx vm` | Makefile and script in this repository |
 | Review filter (`/filter`) and `/metrics` | Part of the inference service |
 | Prometheus and Grafana setup (`docker-compose.yml`, `prometheus.yml`, `alerts.yml`, dashboard) | Files in this repository, plus dashboard screenshots |
 | `client.py` (multi-cloud failover) | Script in this repository |
@@ -693,15 +719,18 @@ network between my laptop and the cloud, which keeps the comparison fair.
 
 ## 11. Issues
 
-- **AWS is not set up yet.** I still need the account and credentials, and I have not tested whether the
-  `aws` provider in `cmx vm` supports everything the deploy script needs (public IP, security group rule).
-  If not, I open the port in the AWS console and report the gap.
-- **Which Chameleon code to use.** `cmx vm` has two versions for Chameleon: the `dev2` branch and the
-  `feature/chameleon-native-chi` branch. I need to know which one the project should build on.
-- **Chameleon clean-up gaps.** `cmx vm delete` does not end the lease, and releasing a floating IP fails
-  because python-chi uses a compute call that KVM@TACC no longer supports, so IPs stay reserved.
+- **`cmx` gaps on AWS** (found Nov 26): `cmx vm key` and `cmx vm security-group` call libcloud methods
+  that the EC2 driver does not have, so I made the key pair and the security group once with libcloud;
+  `cmx vm list` shows `None` for AWS VMs; `cmx vm run` stops after 30 seconds; and the disk size cannot be
+  set, so every VM gets 8 GB. I report these to `cmx` and fix them in small pull requests.
+- **Chameleon could not be used** (Nov 19 and 26): KVM@TACC had no free capacity, and on `dev3`
+  `cmx vm start` failed for every new VM name (my `cmx` pull request fixes it). The project moved to
+  Jetstream (section 5.2).
+- **Floating IPs on Jetstream.** `cmx vm delete` does not release the floating IP, because
+  `release_floating_ip()` reads libcloud's `public_ips`, which openstacksdk servers do not have.
+  `make destroy` releases it until `cmx` is fixed.
 - **Is 2 GB enough** for DistilBERT, PostgreSQL and Docker together? If not, I add swap or use a smaller model.
-- **The VMs are not identical** (`t4g.small` has 2 ARM vCPUs, `m1.small` has 1), so the results note the
+- **The VMs are not identical** (`t4g.small` has 2 ARM vCPUs and 2 GB, `m3.tiny` has 1 x86 vCPU and 3 GB), so the results note the
   differences instead of treating them as a perfectly fair comparison.
 - **Failover is done in the client.** It is the simplest way. A load balancer in front of the clouds would
   be more realistic, but it needs another VM. The cloud IPs also change with every deployment, so
@@ -713,7 +742,7 @@ network between my laptop and the cloud, which keeps the comparison fair.
 
 - cloudmesh-ai-vm (`cmx vm`): https://github.com/cloudmesh-ai/cloudmesh-ai-vm
 - Multipass: https://canonical.com/multipass
-- Chameleon Cloud documentation: https://chameleoncloud.readthedocs.io
+- Jetstream2 documentation: https://docs.jetstream-cloud.org
 - Amazon EC2 documentation: https://docs.aws.amazon.com/ec2/
 - AWS Free Tier: https://aws.amazon.com/free/
 - FastAPI: https://fastapi.tiangolo.com
