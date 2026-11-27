@@ -226,3 +226,4 @@ clouds.yaml
 htpasswd
 *.htpasswd
 *.env
+secrets/

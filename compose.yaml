@@ -1,5 +1,6 @@
-# InferScale on one VM: the api and db containers (the web container with nginx comes next)
-# Start with `make up`. The database password is in db.env, made on the VM by make, never in Git.
+# InferScale on one VM: web (nginx, HTTPS, login) -> api (FastAPI + model) -> db (PostgreSQL)
+# Start with `make up`. The database password is in db.env and the web secrets are in secrets/;
+# both are made on the VM or copied to it, and never committed to Git.
 name: inferscale
 
 services:
@@ -27,8 +28,19 @@ services:
     depends_on:
       db:
         condition: service_healthy    # start only when the database answers
+    # no ports: only the web container reaches the api, on the internal network
+
+  web:
+    build: ./web
+    image: inferscale-web:${VERSION:-dev}
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy    # start only when the model is loaded
     ports:
-      - "127.0.0.1:8000:8000"         # reachable only from inside the VM; nginx replaces this later
+      - "443:8443"                    # HTTPS, the only public port
+    volumes:
+      - ./secrets:/etc/nginx/secrets:ro   # certificate, key and password hashes; not in the image, not in Git
 
 volumes:
   pgdata:
