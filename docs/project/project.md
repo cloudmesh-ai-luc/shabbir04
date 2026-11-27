@@ -254,12 +254,30 @@ keep working through Jetstream.
 | Stage | Tool | What it does |
 | ----- | ---- | ------------ |
 | Source | GitHub | One branch per change, pull requests, issues |
-| Test | pytest, gitleaks, pip-audit (GitHub Actions) | Unit, container and security tests, a secret scan and a dependency check on every push (section 5.9) |
-| Build | Docker (GitHub Actions) | Builds the two images (`inferscale-web`, `inferscale-api`) and pushes them to GitHub Container Registry |
-| Deploy | `deploy.sh` + `cmx vm` | Creates the VM and starts the three containers on the chosen cloud |
+| Test | pytest, pip-audit, gitleaks, hadolint, Trivy (GitHub Actions, `.github/workflows/ci.yml`) | Unit tests on Python 3.15.2, a dependency audit, a secret scan of the whole history, Dockerfile checks and an image scan on every push and pull request (section 5.9) |
+| Build | Docker (GitHub Actions) | Builds both images (`inferscale-web`, `inferscale-api`) on every push and pull request, so a broken Dockerfile is found before a deployment; the VMs still build their own images with `make image` |
+| Deploy | `make deploy` + `cmx vm` | Creates the VM and starts the three containers on the chosen cloud |
 | Verify | `curl /api/health`, Locust | Checks the service through the frontend tier, then measures latency |
 | Monitor | Prometheus + Grafana | Shows live requests, errors and response time for all three clouds, and raises an alert when a cloud is down or has too many errors |
 | Clean up | `make destroy` + `cmx vm delete` | Saves logs and the database, then removes the VM (and on Jetstream its floating IP) after each session |
+
+**CI (Nov 26).** Three jobs run in parallel on every push and pull request: **tests** (pytest and
+pip-audit on Python 3.15.2), **secrets** (gitleaks over every commit) and **docker** (hadolint on both
+Dockerfiles, then both images are built and scanned with Trivy). The workflow can only read the
+repository (`permissions: contents: read`), and every action is pinned to a commit, not a tag, so a
+changed tag cannot change what runs. Before the first run I ran the same checks by hand, and they found
+real problems, which I fixed:
+
+| Check | Found | Fix |
+| ----- | ----- | --- |
+| Trivy, `web` image | 26 fixable HIGH/CRITICAL (nginx, musl, libxml2, libxslt) in `nginx-unprivileged:1.30.6-alpine` | Mainline `1.31.7-alpine` (nginx recommends mainline) plus `apk upgrade`: 0 left |
+| Trivy, `api` image | 7 HIGH: copies of urllib3, msgpack and setuptools inside pip, wheel inside setuptools, and Debian's libzstd1 | Newer setuptools, Debian security updates, and pip removed from the finished image (the service never installs packages): 0 left |
+| Trivy, `db` image | 33 HIGH/CRITICAL in the newest official `postgres:16.16-alpine` (Alpine's libxml2, the `gosu` helper) | Only fixable upstream, so CI reports them without failing; I update the tag when a newer image appears |
+| gitleaks | 1 finding: a `curl -u client:"$(cat …password)"` example in an old version of this document | A false positive (the command reads the password from a file); recorded in `.gitleaksignore` with the reason |
+| hadolint | Health checks in shell form, a user name instead of a number | JSON form and `USER 10001` |
+| pip-audit | Nothing | — |
+
+After the fixes, the login and security tests of section 5.3 gave the same results with the new images.
 
 The Python environment is a `venv` with `pip`, not conda, which keeps the VMs and containers clean.
 
@@ -640,10 +658,11 @@ curl --cacert ~/.config/inferscale/certs/aws.pem -u client https://<aws-ip>/api/
 
 | Test | Tool | What it checks | When |
 | ---- | ---- | -------------- | ---- |
-| Unit | pytest + FastAPI `TestClient` | Each endpoint's normal answer and its `422` errors; the results of `/filter` and `/history` | Every push (CI) |
-| Container | `docker compose up` in CI, then `curl` | The login is required and works; `/api/metrics` only for `prometheus`; an analysis shows up in the history; only port 443 is open | Every push (CI) |
-| Security scan | gitleaks, pip-audit | No secrets in the repository; no dependency with a known vulnerability | Every push (CI) |
-| Smoke | `deploy.sh` | `/api/health` answers after a deployment | Every deployment |
+| Unit | pytest + FastAPI `TestClient` (Python 3.15.2) | Each endpoint's normal answer and its `422` errors; the results of `/filter` and `/history` | Every push and pull request (CI) |
+| Security scan | pip-audit, gitleaks, hadolint, Trivy | No dependency with a known vulnerability; no secret in any commit; clean Dockerfiles; no fixable HIGH or CRITICAL vulnerability in the `api` and `web` images | Every push and pull request (CI) |
+| Image build | `docker build` in CI | Both Dockerfiles still build | Every push and pull request (CI) |
+| Container | `curl` against the three containers on a VM | The login is required and works; `/api/metrics` only for `owner` and `prometheus`; a client cannot fake `X-User`; the rate limit answers `429`; only port 443 is open | By hand on Multipass so far (section 5.3); in CI later |
+| Smoke | `make start` | `/api/health` answers over HTTPS after a deployment | Every deployment |
 | Load, failover, alert | Locust, `client.py`, stopping a container | The targets in section 9 | Measurement runs |
 
 The unit tests replace the model and the database with small fakes (FastAPI's `dependency_overrides`), so
@@ -658,10 +677,10 @@ they run in seconds without downloading the model or starting PostgreSQL.
 | Topic | Title, first summary | Sep 23 – Oct 1 | Done |
 | `cmx vm` on two clouds | VM lifecycle on Multipass and Chameleon, including the `cmx vm ip` command | Sep 29 – Oct 14 | Done |
 | Simpler design | Three clouds + `cmx vm` instead of Kubernetes | Oct 14 | Done |
-| Third cloud | AWS account and credentials, first `cmx vm` VM on AWS | Oct 15 – Oct 22 | Next |
-| Service | Backend (FastAPI + model, `/filter`, `/history`, `/metrics`), PostgreSQL, frontend (web page + nginx, HTTPS, login), Dockerfiles, tests | Oct 15 – Oct 29 | Next |
-| CI | GitHub Actions: test, build, push image | Oct 29 – Nov 5 | Planned |
-| Deploy script | `deploy.sh` for all three clouds | Nov 5 – Nov 12 | Planned |
+| Third cloud | AWS account and credentials, first `cmx vm` VM on AWS | Oct 15 – Oct 22 | Done (Nov 26) |
+| Service | Backend (FastAPI + model, `/filter`, `/history`, `/metrics`), PostgreSQL, frontend (web page + nginx, HTTPS, login), Dockerfiles, tests | Oct 15 – Oct 29 | Done (Nov 26) |
+| CI | GitHub Actions: tests, dependency audit, secret scan, Dockerfile checks, image build and scan | Oct 29 – Nov 5 | Done (Nov 26); pushing images to a registry is still open |
+| Deploy script | `make deploy` / `start` / `demo` / `stop` / `destroy` for all three clouds | Nov 5 – Nov 12 | Done (Nov 26) |
 | Monitoring + failover | Prometheus + Grafana (dashboard, alert rules), `client.py` | Nov 12 – Nov 19 | Planned |
 | Measurements | Load tests and the failover test on the three clouds, results table | Nov 19 – Dec 3 | Planned |
 | Final | Report and presentation | Dec 3 – Dec 10 | Planned |
@@ -712,7 +731,7 @@ they run in seconds without downloading the model or starting PostgreSQL.
 | Live monitoring | Grafana dashboard during a load test | All three clouds shown, updated every 5 seconds |
 | Alerts | Delete one cloud's VM during the failover test | The `CloudDown` alert fires within 2 minutes |
 | Failover | 200 requests through `client.py`, AWS VM deleted halfway | At least 99 % succeed |
-| Security | Calls without a password, with a wrong password, and to `/api/metrics` with the `client` account | All rejected with `401`; `/api/health` still answers |
+| Security | Calls without a password, with a wrong password, and to `/api/metrics` with the `client` account | All rejected with `401`, `/api/health` included |
 | History | Analyze 5 reviews, restart all three containers, then open the history | All 5 analyses are still listed |
 
 Each load test runs three times per cloud. The results table reports the median of the three runs, the
