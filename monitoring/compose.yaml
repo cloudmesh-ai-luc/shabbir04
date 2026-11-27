@@ -1,0 +1,41 @@
+# Monitoring for InferScale: Prometheus collects /api/metrics from every deployed cloud every 5 seconds
+# and checks the alert rules; Grafana shows one dashboard. Started by ./monitor.sh (make monitor) in a
+# local Multipass VM. secrets/ is filled there by monitor.sh from ~/.config/inferscale; it is not in Git.
+name: monitoring
+
+services:
+  prometheus:
+    image: prom/prometheus:v3.16.0
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=30d
+    volumes:
+      - ./prometheus:/etc/prometheus:ro                    # prometheus.yml, alerts.yml, scrape/<cloud>.yml
+      - ./secrets/prometheus:/etc/prometheus-secrets:ro    # the prometheus account's password, the clouds' certificates
+      - promdata:/prometheus
+    ports:
+      - "9090:9090"    # only reachable from this Mac (Multipass's private network)
+
+  grafana:
+    image: grafana/grafana:13.3.2
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /etc/grafana/secrets/grafana-admin.password
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro   # the Prometheus data source and the dashboard
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./secrets/grafana:/etc/grafana/secrets:ro
+      - grafanadata:/var/lib/grafana
+    ports:
+      - "3000:3000"    # only reachable from this Mac
+
+volumes:
+  promdata:
+  grafanadata:

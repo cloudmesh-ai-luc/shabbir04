@@ -31,6 +31,7 @@ docs = [
     "mkdocs>=1.5.0",
     "mkdocs-material>=9.0.0",
 ]
+load = ["locust==2.47.0"]  # the load test (make load); runs on the laptop
 
 [tool.setuptools]
 package-dir = {"" = "src"}

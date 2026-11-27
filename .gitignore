@@ -229,3 +229,5 @@ htpasswd
 secrets/
 # exports from make destroy: the nginx logs contain my IP address
 results/
+# macOS folder metadata
+.DS_Store

@@ -1,0 +1,26 @@
+# Alert rules for InferScale. They show on Prometheus's Alerts page (http://<monitor-ip>:9090/alerts)
+# and in Grafana; sending e-mails or chat messages (Alertmanager) is out of scope.
+groups:
+  - name: inferscale
+    rules:
+      - alert: CloudDown
+        # Prometheus could not read /api/metrics through HTTPS and the login for a minute
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "InferScale on {{ $labels.cloud }} does not answer"
+          description: "https://{{ $labels.instance }}/api/metrics has not answered for 1 minute."
+
+      - alert: HighErrorRate
+        # more than 5 % of the API's answers are server errors (5xx) for 2 minutes
+        expr: |
+          sum by (cloud) (rate(http_requests_total{status="5xx"}[2m]))
+            / sum by (cloud) (rate(http_requests_total[2m])) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "More than 5 % of the requests on {{ $labels.cloud }} fail"
+          description: "{{ $value | humanizePercentage }} of the API's answers were 5xx over the last 2 minutes."

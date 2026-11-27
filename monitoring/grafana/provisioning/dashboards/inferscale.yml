@@ -1,0 +1,9 @@
+# Grafana loads the InferScale dashboard from this folder at start-up
+apiVersion: 1
+providers:
+  - name: inferscale
+    type: file
+    disableDeletion: true
+    allowUiUpdates: false
+    options:
+      path: /var/lib/grafana/dashboards
