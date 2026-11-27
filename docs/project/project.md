@@ -174,7 +174,7 @@ project uses Jetstream. `make deploy CLOUD=chameleon` still works if Chameleon h
 | **How the service is reached** | The VM's local IP | Floating IP, assigned by `cmx vm start` | The instance's public IP (no paid Elastic IP: `cmx vm start --noip`) |
 | **Port 443 (HTTPS, frontend tier)** | Open by default | Security group `inferscale-shabbir04-https`: port 443 from my IP only, made with `cmx vm security-group` | Security group `inferscale`: ports 22 and 443 from my IP only |
 | **Special step** | None | `cmx vm delete` keeps the floating IP, so `make destroy` releases it | Region `us-east-2` only (my account's organization policy blocks EC2 in the other regions); delete the instance after every session |
-| **Status** | `make deploy`, `start`, `demo`, `stop` and `destroy` tested (Nov 26) | `make deploy`, `start`, `demo` and `destroy` tested (Nov 26) | `start`, `run`, `delete`, Docker build and `make up` tested (Nov 26) |
+| **Status** | `make deploy`, `start`, `demo`, `stop` and `destroy` tested (Nov 26) | `make deploy`, `start`, `demo` and `destroy` tested (Nov 26) | `make deploy`, `start`, `demo` and `destroy` tested (Nov 26) |
 
 **One command per step, the same on every cloud.** From my laptop, in the `cmx` virtual environment:
 
@@ -301,6 +301,21 @@ released the floating IP; afterwards the project had no server and no floating I
 answered after 32 seconds and `make demo` gave the same results. `make stop` left no container running;
 `make start` answered again after 16 seconds with the history kept, and `make destroy` saved the logs and
 the database and deleted the VM.
+
+**The same commands on AWS (Nov 26).** `make deploy CLOUD=aws` took 4 minutes, `make start` answered
+after 37 seconds and `make demo` gave the same results. With all three containers running, the 8 GB disk
+was 78% full (1.6 GB free, because `deploy.sh` deletes Docker's build cache after the build), the
+containers used about 430 MB of the 2 GB memory (`api` 386 MB, `db` 28 MB, `web` 12 MB), only ports 22
+and 443 were open (for my IP only), and a prediction from my Mac took about 200 ms. `make destroy` left
+no instance, disk or Elastic IP, and the month's AWS cost stayed at $0.00 (Free plan).
+
+| Cloud | `make deploy` | `make start` until HTTPS answers | Prediction from my Mac |
+| ----- | ------------- | -------------------------------- | ---------------------- |
+| Multipass (local) | 3 min | 32 s | — (local network) |
+| Jetstream | 3 min | 43 s | about 180 ms |
+| AWS (`us-east-2`) | 4 min | 37 s | about 200 ms |
+
+These are single first runs, not yet the measurements of section 9.
 
 **Web tier test on Multipass (Nov 26).** With all three containers (`web` image 90 MB):
 
