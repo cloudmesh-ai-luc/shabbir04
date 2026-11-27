@@ -1,5 +1,7 @@
 # shabbir04
 
+[![ci](https://github.com/cloudmesh-ai-luc/shabbir04/actions/workflows/ci.yml/badge.svg)](https://github.com/cloudmesh-ai-luc/shabbir04/actions/workflows/ci.yml)
+
 *  Accounts: [Piazza account post](https://piazza.com/class/mt5rkdsycb31c3/post/24)
 
 Note:

@@ -1,0 +1,3 @@
+# Reviewed false positives (gitleaks fingerprint: commit:file:rule:line).
+# The curl example read the password from ~/.config/inferscale/client.password; no secret is in the text.
+3efdc4b7e4939cfb23242b521b280f16c77b478e:docs/project/project.md:curl-auth-user:190
